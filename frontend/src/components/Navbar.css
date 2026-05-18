@@ -1,0 +1,52 @@
+.navbar {
+  position: sticky;
+  top: var(--space-md);
+  z-index: 100;
+  margin: 0 var(--space-md) var(--space-xl) var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.brand-icon {
+  color: var(--primary-light);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  color: var(--primary-light);
+  text-shadow: 0 0 20px var(--glass-glow);
+}

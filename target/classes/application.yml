@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: devskills
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres}
+    username: ${DB_USER:postgres.zxkphvaeeugcoxzsvpzs}
+    password: ${DB_PASSWORD:4POA@faeterj}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER:https://zxkphvaeeugcoxzsvpzs.supabase.co/auth/v1}
+          jwk-set-uri: ${JWT_JWKS:https://zxkphvaeeugcoxzsvpzs.supabase.co/auth/v1/jwk}
+
+server:
+  port: 8080

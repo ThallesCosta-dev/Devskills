@@ -1,0 +1,112 @@
+.community-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--space-xl);
+}
+
+.mb-4 { margin-bottom: var(--space-lg); }
+.mt-2 { margin-top: var(--space-sm); }
+.ml-auto { margin-left: auto; }
+
+.post-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: none;
+  min-height: 80px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.post-input:focus {
+  border-color: var(--primary-light);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.post-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.post-author {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.post-content {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+}
+
+.border-top {
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-md);
+}
+
+.post-actions {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.action-btn:hover {
+  color: var(--primary-light);
+}
+
+.trending-list {
+  list-style: none;
+  margin-top: var(--space-md);
+}
+
+.trending-list li {
+  padding: var(--space-sm) 0;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.trending-list li:hover {
+  color: var(--primary-light);
+}
+
+@media (max-width: 768px) {
+  .community-layout {
+    grid-template-columns: 1fr;
+  }
+  .community-sidebar {
+    display: none;
+  }
+}
