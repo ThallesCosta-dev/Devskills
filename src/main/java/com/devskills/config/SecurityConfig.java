@@ -23,7 +23,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**", "/api/posts/**", "/api/jobs/**", "/api/devskills/profile/**")
+                        .requestMatchers("/api/public/**", "/api/posts/**", "/api/jobs/**", "/api/devskills/profile/**", "/api/comments/post/**")
                         .permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("SCOPE_admin")
                         .anyRequest().authenticated())

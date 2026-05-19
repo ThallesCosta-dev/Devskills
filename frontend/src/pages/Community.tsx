@@ -113,6 +113,7 @@ export function Community() {
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
   const [comments, setComments] = useState<Record<number, any[]>>({});
   const [commentText, setCommentText] = useState<Record<number, string>>({});
+  const [isSubmittingComment, setIsSubmittingComment] = useState<Record<number, boolean>>({});
 
   const toggleComments = (postId: number) => {
     const nowOpen = !expandedComments[postId];
@@ -126,14 +127,17 @@ export function Community() {
 
   const handlePostComment = (postId: number) => {
     const text = commentText[postId]?.trim();
-    if (!text) return;
+    if (!text || isSubmittingComment[postId]) return;
+    
+    setIsSubmittingComment(prev => ({ ...prev, [postId]: true }));
     axios.post('/api/comments', { content: text, post: { id: postId } },
       { headers: { Authorization: `Bearer ${authToken}` } })
       .then(res => {
         setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), res.data] }));
         setCommentText(prev => ({ ...prev, [postId]: '' }));
       })
-      .catch(err => toast.error("Erro ao comentar: " + err.message));
+      .catch(err => toast.error("Erro ao comentar: " + err.message))
+      .finally(() => setIsSubmittingComment(prev => ({ ...prev, [postId]: false })));
   };
 
   const handleCommentVote = (commentId: number, postId: number, voteValue: number) => {
@@ -310,7 +314,7 @@ export function Community() {
                           );
                         })}
                       {isAuthenticated && (
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', opacity: isSubmittingComment[post.id] ? 0.6 : 1 }}>
                           <input
                             type="text"
                             placeholder="Comente..."
@@ -319,8 +323,14 @@ export function Community() {
                             value={commentText[post.id] || ''}
                             onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && handlePostComment(post.id)}
+                            disabled={isSubmittingComment[post.id]}
                           />
-                          <button onClick={() => handlePostComment(post.id)} className="btn btn-primary" style={{ padding: '6px 12px' }}>
+                          <button 
+                            onClick={() => handlePostComment(post.id)} 
+                            className="btn btn-primary" 
+                            style={{ padding: '6px 12px' }}
+                            disabled={isSubmittingComment[post.id]}
+                          >
                             <Send size={14} />
                           </button>
                         </div>

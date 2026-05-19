@@ -28,8 +28,8 @@ public class Comment {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    private int upvotes = 0;
-    private int downvotes = 0;
+    private Integer upvotes = 0;
+    private Integer downvotes = 0;
 
     public Comment() {}
 
@@ -54,10 +54,10 @@ public class Comment {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public int getUpvotes() { return upvotes; }
-    public void setUpvotes(int upvotes) { this.upvotes = upvotes; }
+    public Integer getUpvotes() { return upvotes == null ? 0 : upvotes; }
+    public void setUpvotes(Integer upvotes) { this.upvotes = upvotes; }
 
-    public int getDownvotes() { return downvotes; }
-    public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
+    public Integer getDownvotes() { return downvotes == null ? 0 : downvotes; }
+    public void setDownvotes(Integer downvotes) { this.downvotes = downvotes; }
 }
 

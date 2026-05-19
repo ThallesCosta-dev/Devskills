@@ -24,14 +24,23 @@ public class JobOffer {
     private String sourceUrl;
 
     @Column(name = "source_platform")
-    private String sourcePlatform; // LinkedIn, Gupy, etc.
+    private String sourcePlatform; // LinkedIn, RemoteOK, Arbeitnow, etc.
+
+    private String location;    // "Remote", "São Paulo, BR", etc.
+    private String salaryRange; // "R$8k–R$15k" ou null
+    private String tags;        // "React,TypeScript,Node.js" (CSV)
+    private String jobType;     // "REMOTE", "HYBRID", "ONSITE"
+
+    @Column(name = "external_id", unique = true)
+    private String externalId;  // ID externo único para evitar duplicatas
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private Developer author; // The user who posted it
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"skills", "bio", "email", "github", "linkedin", "portfolio", "location", "role", "username", "hibernateLazyInitializer", "handler"})
+    private Developer author;
 
     private int upvotes = 0;
     private int downvotes = 0;
@@ -73,6 +82,21 @@ public class JobOffer {
 
     public int getDownvotes() { return downvotes; }
     public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getSalaryRange() { return salaryRange; }
+    public void setSalaryRange(String salaryRange) { this.salaryRange = salaryRange; }
+
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
+
+    public String getJobType() { return jobType; }
+    public void setJobType(String jobType) { this.jobType = jobType; }
+
+    public String getExternalId() { return externalId; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
 
     @com.fasterxml.jackson.annotation.JsonManagedReference
     @OneToMany(mappedBy = "jobOffer", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -17,6 +17,7 @@ export function Timeline() {
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
   const [comments, setComments] = useState<Record<number, any[]>>({});
   const [commentText, setCommentText] = useState<Record<number, string>>({});
+  const [isSubmittingComment, setIsSubmittingComment] = useState<Record<number, boolean>>({});
   const [resharePost, setResharePost] = useState<any | null>(null);
 
   const authToken = localStorage.getItem('auth_token');
@@ -53,6 +54,17 @@ export function Timeline() {
   };
 
   useEffect(() => { fetchPosts(); }, []);
+
+  // Pre-fetch comments to make them appear instantly
+  useEffect(() => {
+    posts.forEach((p: any) => {
+      if (!comments[p.id]) {
+        axios.get(`/api/comments/post/${p.id}`)
+          .then(res => setComments(prev => ({ ...prev, [p.id]: res.data })))
+          .catch(() => {});
+      }
+    });
+  }, [posts]);
 
   const handlePost = () => {
     if (!editor || editor.isEmpty) return;
@@ -104,14 +116,17 @@ export function Timeline() {
 
   const handlePostComment = (postId: number) => {
     const text = commentText[postId]?.trim();
-    if (!text) return;
+    if (!text || isSubmittingComment[postId]) return;
+    
+    setIsSubmittingComment(prev => ({ ...prev, [postId]: true }));
     axios.post('/api/comments', { content: text, post: { id: postId } },
       { headers: { Authorization: `Bearer ${authToken}` } })
       .then(res => {
         setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), res.data] }));
         setCommentText(prev => ({ ...prev, [postId]: '' }));
       })
-      .catch(err => toast.error("Erro ao comentar: " + err.message));
+      .catch(err => toast.error("Erro ao comentar: " + err.message))
+      .finally(() => setIsSubmittingComment(prev => ({ ...prev, [postId]: false })));
   };
 
   const handleCommentVote = (commentId: number, postId: number, voteValue: number) => {
@@ -183,8 +198,8 @@ export function Timeline() {
 
       {/* Post Review modal */}
       {resharePost && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '600px', padding: '24px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '600px', padding: '24px', background: 'var(--bg-surface)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Repeat2 size={20} style={{ color: 'var(--secondary)' }} /> Reshare
@@ -302,7 +317,7 @@ export function Timeline() {
                     );
                   })}
                   {isAuthenticated && (
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', opacity: isSubmittingComment[post.id] ? 0.6 : 1 }}>
                       <input
                         type="text"
                         placeholder="Escreva um comentário..."
@@ -311,8 +326,14 @@ export function Timeline() {
                         value={commentText[post.id] || ''}
                         onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handlePostComment(post.id)}
+                        disabled={isSubmittingComment[post.id]}
                       />
-                      <button onClick={() => handlePostComment(post.id)} className="btn btn-primary" style={{ padding: '8px 14px' }}>
+                      <button 
+                        onClick={() => handlePostComment(post.id)} 
+                        className="btn btn-primary" 
+                        style={{ padding: '8px 14px' }}
+                        disabled={isSubmittingComment[post.id]}
+                      >
                         <Send size={16} />
                       </button>
                     </div>

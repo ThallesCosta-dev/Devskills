@@ -143,35 +143,35 @@ export function Profile() {
                 style={{ backgroundImage: devData.avatarUrl ? `url(${devData.avatarUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: devData.avatarUrl ? 'transparent' : 'white' }}
               >
                 {!devData.avatarUrl && (devData.name || 'D').charAt(0)}
+                {isEditing && (
+                  <>
+                    <input type="file" ref={avatarInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+                      style={{
+                        position: 'absolute',
+                        bottom: '0px',
+                        right: '0px',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        background: 'var(--primary)',
+                        border: '3px solid var(--bg-base)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        zIndex: 20,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.4)'
+                      }}
+                      title="Alterar Foto"
+                    >
+                      <Camera size={16} />
+                    </button>
+                  </>
+                )}
               </div>
-              {isEditing && (
-                <>
-                  <input type="file" ref={avatarInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
-                  <button
-                    onClick={() => avatarInputRef.current?.click()}
-                    style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      right: '0px',
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: 'var(--primary)',
-                      border: '3px solid var(--bg-base)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      zIndex: 20,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.4)'
-                    }}
-                    title="Alterar Foto"
-                  >
-                    <Camera size={16} />
-                  </button>
-                </>
-              )}
             </div>
             {isMe && (
               <button 
@@ -285,7 +285,14 @@ export function Profile() {
           <div className="skills-tags">
             {devData.skills && devData.skills.length > 0 ? devData.skills.map((ds: any) => (
               <div key={ds.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span className="skill-tag-name">{ds.skill.name}</span>
+                <span 
+                  className="skill-tag-name"
+                  style={isEditing ? { cursor: 'pointer' } : {}}
+                  onClick={() => isEditing && handleEditSkill(ds)}
+                  title={isEditing ? 'Clique para alterar o nível' : ''}
+                >
+                  {ds.skill.name}
+                </span>
                 {isMe && isEditing && editingSkillId === ds.id ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <select

@@ -99,7 +99,7 @@ export function Navbar() {
                 </button>
                 
                 {showNotif && (
-                  <div className="glass-panel" style={{ position: 'absolute', top: '50px', right: '0', width: '320px', padding: '16px', zIndex: 100, borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                  <div className="glass-panel" style={{ position: 'absolute', top: '50px', right: '0', width: '320px', padding: '16px', zIndex: 100, borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', background: 'var(--bg-surface)' }}>
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="font-bold">Notificações</h3>
                       {notifications.length > 0 && (
