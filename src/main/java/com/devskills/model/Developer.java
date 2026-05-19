@@ -69,4 +69,11 @@ public class Developer {
 
     public String getPortfolio() { return portfolio; }
     public void setPortfolio(String portfolio) { this.portfolio = portfolio; }
+
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    @jakarta.persistence.OneToMany(mappedBy = "developer", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<DeveloperSkill> skills = new java.util.ArrayList<>();
+
+    public java.util.List<DeveloperSkill> getSkills() { return skills; }
+    public void setSkills(java.util.List<DeveloperSkill> skills) { this.skills = skills; }
 }

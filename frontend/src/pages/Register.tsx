@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Terminal, UserPlus } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { toast } from 'react-hot-toast';
 import './Register.css';
 
 export function Register() {
@@ -13,7 +14,7 @@ export function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("As senhas não coincidem!");
+      toast.error("As senhas não coincidem!");
       return;
     }
     
@@ -32,7 +33,7 @@ export function Register() {
     });
 
     if (error) {
-      alert("Erro ao criar conta: " + error.message);
+      toast.error("Erro ao criar conta: " + error.message);
       return;
     }
 
@@ -41,7 +42,7 @@ export function Register() {
       localStorage.setItem('user_email', email);
       window.location.href = '/';
     } else {
-      alert("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar a conta antes de fazer o login.");
+      toast.success("Conta criada! Verifique seu e-mail.");
       window.location.href = '/login';
     }
   };

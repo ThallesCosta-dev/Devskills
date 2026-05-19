@@ -72,10 +72,85 @@ public class DevSkillsController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @Autowired
+    private com.devskills.repository.DeveloperSkillRepository developerSkillRepository;
+
+    @Autowired
+    private com.devskills.repository.SkillRepository skillRepository;
+
     @GetMapping("/profile/{username}")
     public ResponseEntity<Developer> getProfileByUsername(@PathVariable String username) {
         return developerRepository.findByUsername(username)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/me/skills")
+    public ResponseEntity<?> addSkill(@AuthenticationPrincipal Jwt jwt, @RequestBody java.util.Map<String, String> payload) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        String userId = jwt.getSubject();
+        
+        Optional<Developer> devOpt = developerRepository.findById(userId);
+        if (devOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        String skillName = payload.get("name");
+        String proficiency = payload.get("proficiencyLevel");
+        
+        if (skillName == null || skillName.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Nome da habilidade é obrigatório");
+        }
+        
+        // Find or create skill
+        com.devskills.model.Skill skill = skillRepository.findByNameIgnoreCase(skillName.trim())
+                .orElseGet(() -> {
+                    com.devskills.model.Skill newSkill = new com.devskills.model.Skill();
+                    newSkill.setName(skillName.trim());
+                    newSkill.setCategory("Geral");
+                    return skillRepository.save(newSkill);
+                });
+                
+        Developer dev = devOpt.get();
+        
+        // Check if dev already has this skill
+        boolean hasSkill = dev.getSkills().stream().anyMatch(ds -> ds.getSkill().getId().equals(skill.getId()));
+        if (hasSkill) {
+            return ResponseEntity.badRequest().body("Você já adicionou esta habilidade");
+        }
+        
+        com.devskills.model.DeveloperSkill devSkill = new com.devskills.model.DeveloperSkill(dev, skill, proficiency != null ? proficiency : "Iniciante", 0);
+        developerSkillRepository.save(devSkill);
+        
+        // Return updated developer
+        return ResponseEntity.ok(developerRepository.findById(userId).get());
+    }
+    
+    @DeleteMapping("/me/skills/{devSkillId}")
+    public ResponseEntity<?> removeSkill(@AuthenticationPrincipal Jwt jwt, @PathVariable Long devSkillId) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        String userId = jwt.getSubject();
+        
+        Optional<com.devskills.model.DeveloperSkill> dsOpt = developerSkillRepository.findById(devSkillId);
+        if (dsOpt.isPresent() && dsOpt.get().getDeveloper().getId().equals(userId)) {
+            developerSkillRepository.delete(dsOpt.get());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/me/skills/{devSkillId}")
+    public ResponseEntity<?> updateSkill(@AuthenticationPrincipal Jwt jwt, @PathVariable Long devSkillId, @RequestBody java.util.Map<String, String> payload) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        String userId = jwt.getSubject();
+        
+        Optional<com.devskills.model.DeveloperSkill> dsOpt = developerSkillRepository.findById(devSkillId);
+        if (dsOpt.isPresent() && dsOpt.get().getDeveloper().getId().equals(userId)) {
+            com.devskills.model.DeveloperSkill ds = dsOpt.get();
+            if (payload.containsKey("proficiencyLevel")) {
+                ds.setProficiencyLevel(payload.get("proficiencyLevel"));
+                developerSkillRepository.save(ds);
+            }
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

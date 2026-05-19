@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Code2, Briefcase, MapPin, Link as LinkIcon, Edit2, Save } from 'lucide-react';
+import { Code2, Briefcase, MapPin, Link as LinkIcon, Edit2, Save, MessageCircle, Camera } from 'lucide-react';
 import axios from 'axios';
 import { Typewriter } from '../components/Typewriter';
+import { toast } from 'react-hot-toast';
+import { uploadImageToSupabase } from '../utils/uploadImage';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import './Profile.css';
 
 export function Profile() {
@@ -10,6 +13,10 @@ export function Profile() {
   const [devData, setDevData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillProficiency, setNewSkillProficiency] = useState('Júnior');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Check if it's the current user's profile
   const isMe = username === 'me';
@@ -37,15 +44,91 @@ export function Profile() {
 
   const handleSave = () => {
     if (!isMe) return;
-    axios.put('/api/devskills/me', devData, {
+    
+    // Send only the fields we actually want to update to avoid Jackson mapping errors with nested objects
+    const payload = {
+      name: devData.name,
+      bio: devData.bio,
+      avatarUrl: devData.avatarUrl,
+      location: devData.location,
+      role: devData.role,
+      github: devData.github,
+      linkedin: devData.linkedin,
+      portfolio: devData.portfolio,
+      username: devData.username
+    };
+
+    axios.put('/api/devskills/me', payload, {
       headers: { Authorization: `Bearer ${authToken}` }
     }).then(res => {
       setDevData(res.data);
       setIsEditing(false);
-    }).catch(err => console.error("Erro ao salvar", err));
+      toast.success("Perfil atualizado com sucesso!");
+    }).catch(err => {
+      console.error("Erro ao salvar", err);
+      if (err.response?.status === 409) {
+        toast.error("Username já está em uso!");
+      } else {
+        toast.error(`Erro ao salvar: ${err.response?.data?.message || err.response?.data || err.message}`);
+      }
+    });
   };
 
-  if (loading) return <div className="container mt-8">Carregando perfil...</div>;
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    toast.loading("Enviando foto...", { id: 'avatar' });
+    const url = await uploadImageToSupabase(file, 'profile_pictures');
+    if (url) {
+      setDevData({ ...devData, avatarUrl: url });
+      toast.success("Foto carregada! Clique em Salvar para manter.", { id: 'avatar' });
+    } else {
+      toast.error("Falha ao enviar foto.", { id: 'avatar' });
+    }
+  };
+
+  const handleAddSkill = () => {
+    if (!newSkillName.trim()) return;
+    axios.post('/api/devskills/me/skills', { name: newSkillName, proficiencyLevel: newSkillProficiency }, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    }).then(res => {
+      setDevData(res.data);
+      setNewSkillName('');
+      toast.success("Habilidade adicionada!");
+    }).catch(err => toast.error(err.response?.data || "Erro ao adicionar habilidade"));
+  };
+
+  const handleRemoveSkill = (devSkillId: number) => {
+    axios.delete(`/api/devskills/me/skills/${devSkillId}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    }).then(() => {
+      fetchProfile();
+      toast.success("Habilidade removida!");
+    }).catch(err => toast.error("Erro ao remover: " + err.message));
+  };
+
+  const [editingSkillId, setEditingSkillId] = useState<number | null>(null);
+  const [editingLevel, setEditingLevel] = useState('');
+  const LEVELS = ['Júnior', 'Pleno', 'Sênior', 'Especialista'];
+
+  const handleEditSkill = (ds: any) => {
+    setEditingSkillId(ds.id);
+    setEditingLevel(ds.proficiencyLevel);
+  };
+
+  const handleSaveSkillLevel = (ds: any) => {
+    if (editingLevel === ds.proficiencyLevel) { setEditingSkillId(null); return; }
+    axios.put(`/api/devskills/me/skills/${ds.id}`, { proficiencyLevel: editingLevel }, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    }).then(() => {
+      fetchProfile();
+      setEditingSkillId(null);
+      toast.success("Nível atualizado!");
+    }).catch(err => toast.error("Erro ao atualizar nível."));
+  };
+
+  if (loading) return <LoadingSpinner text="Carregando perfil..." />;
   if (!devData) return <div className="container mt-8">Perfil não encontrado.</div>;
 
   return (
@@ -54,8 +137,23 @@ export function Profile() {
         <div className="profile-banner"></div>
         <div className="profile-info">
           <div className="flex justify-between items-start">
-            <div className="profile-avatar-large">
-              {(devData.name || 'D').charAt(0)}
+            <div className="relative">
+              <div className="profile-avatar-large" style={{ backgroundImage: devData.avatarUrl ? `url(${devData.avatarUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: devData.avatarUrl ? 'transparent' : 'white' }}>
+                {!devData.avatarUrl && (devData.name || 'D').charAt(0)}
+              </div>
+              {isEditing && (
+                <>
+                  <input type="file" ref={avatarInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="btn btn-primary"
+                    style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '10px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: '2px solid rgba(255,255,255,0.3)' }}
+                    title="Alterar Foto"
+                  >
+                    <Camera size={20} />
+                  </button>
+                </>
+              )}
             </div>
             {isMe && (
               <button 
@@ -64,6 +162,11 @@ export function Profile() {
               >
                 {isEditing ? <><Save size={18} /> Salvar</> : <><Edit2 size={18} /> Editar Perfil</>}
               </button>
+            )}
+            {!isMe && (
+              <a href={`/chat/${devData.id}`} className="btn btn-primary mt-4 flex items-center gap-2">
+                <MessageCircle size={18} /> Enviar Mensagem
+              </a>
             )}
           </div>
           
@@ -89,7 +192,13 @@ export function Profile() {
               ) : (devData.location || 'Não informado')}
             </span>
             <span className="flex items-center gap-sm ml-auto">
-              @{devData.username || 'username'}
+              {isEditing ? (
+                <div className="flex items-center">
+                  @ <input type="text" className="glass-input ml-2" value={devData.username || ''} onChange={e => setDevData({...devData, username: e.target.value})} placeholder="username" />
+                </div>
+              ) : (
+                `@${devData.username || 'username'}`
+              )}
             </span>
           </div>
         </div>
@@ -97,9 +206,12 @@ export function Profile() {
 
       <div className="profile-grid">
         <div className="profile-sidebar glass-card delay-100">
-          <h3 className="mb-4 text-primary-light">Sobre mim</h3>
+          <h3 className="mb-4 text-primary-light flex justify-between items-center">
+            Sobre mim
+            {isEditing && <span className="text-xs text-muted font-normal">{devData.bio?.length || 0}/500</span>}
+          </h3>
           {isEditing ? (
-            <textarea className="glass-input" style={{width: '100%', minHeight: '100px'}} value={devData.bio || ''} onChange={e => setDevData({...devData, bio: e.target.value})} placeholder="Fale um pouco sobre você..." />
+            <textarea className="glass-input" style={{width: '100%', minHeight: '100px'}} maxLength={500} value={devData.bio || ''} onChange={e => setDevData({...devData, bio: e.target.value})} placeholder="Fale um pouco sobre você..." />
           ) : (
             <p className="text-secondary leading-relaxed mb-4">{devData.bio || 'Nenhuma biografia fornecida.'}</p>
           )}
@@ -110,21 +222,21 @@ export function Profile() {
               <div className="flex items-center gap-sm">
                 <Code2 size={18} /> 
                 {isEditing ? <input className="glass-input flex-1" value={devData.github || ''} onChange={e => setDevData({...devData, github: e.target.value})} placeholder="github.com/..." /> 
-                : <a href={`https://${devData.github}`} target="_blank" rel="noreferrer">{devData.github || 'Não informado'}</a>}
+                : <a href={devData.github?.startsWith('http') ? devData.github : `https://${devData.github}`} target="_blank" rel="noreferrer">{devData.github || 'Não informado'}</a>}
               </div>
             </li>
             <li>
               <div className="flex items-center gap-sm">
                 <Briefcase size={18} />
                 {isEditing ? <input className="glass-input flex-1" value={devData.linkedin || ''} onChange={e => setDevData({...devData, linkedin: e.target.value})} placeholder="linkedin.com/in/..." /> 
-                : <a href={`https://${devData.linkedin}`} target="_blank" rel="noreferrer">{devData.linkedin || 'Não informado'}</a>}
+                : <a href={devData.linkedin?.startsWith('http') ? devData.linkedin : `https://${devData.linkedin}`} target="_blank" rel="noreferrer">{devData.linkedin || 'Não informado'}</a>}
               </div>
             </li>
             <li>
               <div className="flex items-center gap-sm">
                 <LinkIcon size={18} />
                 {isEditing ? <input className="glass-input flex-1" value={devData.portfolio || ''} onChange={e => setDevData({...devData, portfolio: e.target.value})} placeholder="Seu site..." /> 
-                : <a href={`https://${devData.portfolio}`} target="_blank" rel="noreferrer">{devData.portfolio || 'Não informado'}</a>}
+                : <a href={devData.portfolio?.startsWith('http') ? devData.portfolio : `https://${devData.portfolio}`} target="_blank" rel="noreferrer">{devData.portfolio || 'Não informado'}</a>}
               </div>
             </li>
           </ul>
@@ -132,16 +244,59 @@ export function Profile() {
 
         <div className="profile-content glass-card delay-200">
           <h3 className="mb-4 text-primary-light">Habilidades Principais</h3>
-          <div className="skills-tags">
-            {/* Using mock skills since dev-skills table is not fully integrated yet */}
-            {[{ name: 'Java', category: 'Backend', level: 'Expert' }, { name: 'React', category: 'Frontend', level: 'Senior' }].map(skill => (
-              <div key={skill.name} className="skill-tag">
-                <span className="skill-tag-name">{skill.name}</span>
-                <span className={`badge ${skill.category === 'Frontend' ? 'primary' : skill.category === 'Backend' ? 'success' : ''}`}>
-                  {skill.level}
-                </span>
+          
+          {isMe && isEditing && (
+            <div className="flex gap-sm mb-6 items-end">
+              <div className="flex-1">
+                <label className="text-xs text-secondary mb-1 block">Nova Habilidade</label>
+                <input type="text" className="glass-input w-full" value={newSkillName} onChange={e => setNewSkillName(e.target.value)} placeholder="Ex: React, Java, Figma" />
               </div>
-            ))}
+              <div style={{width: '120px'}}>
+                <label className="text-xs text-secondary mb-1 block">Nível</label>
+                <select className="glass-input w-full" value={newSkillProficiency} onChange={e => setNewSkillProficiency(e.target.value)}>
+                  <option value="Júnior">Júnior</option>
+                  <option value="Pleno">Pleno</option>
+                  <option value="Sênior">Sênior</option>
+                  <option value="Especialista">Especialista</option>
+                </select>
+              </div>
+              <button onClick={handleAddSkill} className="btn btn-primary" style={{height: '42px'}}>Adicionar</button>
+            </div>
+          )}
+
+          <div className="skills-tags">
+            {devData.skills && devData.skills.length > 0 ? devData.skills.map((ds: any) => (
+              <div key={ds.id} className="skill-tag flex items-center gap-2">
+                <span className="skill-tag-name">{ds.skill.name}</span>
+                {isMe && isEditing && editingSkillId === ds.id ? (
+                  <div className="flex items-center gap-1">
+                    <select
+                      className="glass-input"
+                      style={{ padding: '2px 6px', fontSize: '12px' }}
+                      value={editingLevel}
+                      onChange={e => setEditingLevel(e.target.value)}
+                    >
+                      {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                    <button onClick={() => handleSaveSkillLevel(ds)} className="text-green-400 hover:text-green-300" title="Salvar">✓</button>
+                    <button onClick={() => setEditingSkillId(null)} className="text-red-400 hover:text-red-300" title="Cancelar">✕</button>
+                  </div>
+                ) : (
+                  <span
+                    className={`badge ${ds.proficiencyLevel === 'Sênior' || ds.proficiencyLevel === 'Especialista' ? 'primary' : ds.proficiencyLevel === 'Pleno' ? 'success' : 'secondary'} ${isEditing ? 'cursor-pointer hover:opacity-80' : ''}`}
+                    onClick={() => isEditing && handleEditSkill(ds)}
+                    title={isEditing ? "Clique para alterar o nível" : ""}
+                  >
+                    {ds.proficiencyLevel}
+                  </span>
+                )}
+                {isMe && isEditing && editingSkillId !== ds.id && (
+                  <button onClick={() => handleRemoveSkill(ds.id)} className="text-red-400 hover:text-red-300 ml-1" title="Remover">×</button>
+                )}
+              </div>
+            )) : (
+              <p className="text-secondary text-sm">Nenhuma habilidade cadastrada.</p>
+            )}
           </div>
         </div>
       </div>

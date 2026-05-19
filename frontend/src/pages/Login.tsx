@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Terminal, LogIn } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { toast } from 'react-hot-toast';
 import './Login.css';
 
 export function Login() {
@@ -17,7 +18,7 @@ export function Login() {
     });
 
     if (error) {
-      alert("Erro ao fazer login: " + error.message);
+      toast.error("Erro ao fazer login: " + error.message);
       return;
     }
 

@@ -2,9 +2,9 @@ spring:
   application:
     name: devskills
   datasource:
-    url: ${DB_URL:jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres}
-    username: ${DB_USER:postgres.zxkphvaeeugcoxzsvpzs}
-    password: ${DB_PASSWORD:4POA@faeterj}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -13,12 +13,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+# A autenticação do Supabase agora utiliza chaves assimétricas (ECC P-256).
+# O Spring Boot vai baixar a chave pública automaticamente dessa URL:
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${JWT_ISSUER:https://zxkphvaeeugcoxzsvpzs.supabase.co/auth/v1}
-          jwk-set-uri: ${JWT_JWKS:https://zxkphvaeeugcoxzsvpzs.supabase.co/auth/v1/jwk}
+          jwk-set-uri: ${SUPABASE_URL}/auth/v1/.well-known/jwks.json
 
 server:
   port: 8080

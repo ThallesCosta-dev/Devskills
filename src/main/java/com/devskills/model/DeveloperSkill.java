@@ -18,6 +18,7 @@ public class DeveloperSkill {
 
     @ManyToOne
     @JoinColumn(name = "developer_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Developer developer;
 
     @ManyToOne

@@ -79,6 +79,7 @@
 .social-links a {
   color: var(--text-secondary);
   transition: color var(--transition-fast);
+  word-break: break-all;
 }
 
 .social-links a:hover {

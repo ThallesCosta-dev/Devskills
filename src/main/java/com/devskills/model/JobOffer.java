@@ -73,4 +73,11 @@ public class JobOffer {
 
     public int getDownvotes() { return downvotes; }
     public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
+
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    @OneToMany(mappedBy = "jobOffer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<JobOfferVote> votes = new java.util.ArrayList<>();
+
+    public java.util.List<JobOfferVote> getVotes() { return votes; }
+    public void setVotes(java.util.List<JobOfferVote> votes) { this.votes = votes; }
 }
