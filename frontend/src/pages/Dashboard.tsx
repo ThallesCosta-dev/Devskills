@@ -136,41 +136,53 @@ export function Dashboard() {
               <h3 className="skill-name">{ds.skill.name}</h3>
               
               <div className="skill-progress-container">
-                <div className="flex justify-between text-muted text-sm mb-2">
-                  <span>Nível</span>
-                  {isEditing ? (
-                    <div className="flex items-center gap-1">
-                      <select
-                        className="glass-input"
-                        style={{ padding: '2px 6px', fontSize: '12px' }}
-                        value={editingLevel}
-                        onChange={e => setEditingLevel(e.target.value)}
-                      >
-                        {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                      </select>
-                      <button onClick={() => handleSaveSkillLevel(ds)} className="text-green-400 hover:text-green-300" title="Salvar"><Check size={14} /></button>
-                      <button onClick={() => setEditingSkillId(null)} className="text-red-400 hover:text-red-300" title="Cancelar"><X size={14} /></button>
-                    </div>
-                  ) : (
-                    <span className="font-semibold text-primary-light flex items-center gap-1">
-                      {ds.proficiencyLevel}
-                      <button
-                        onClick={() => { setEditingSkillId(ds.id); setEditingLevel(ds.proficiencyLevel); }}
-                        className="text-muted hover:text-primary-light ml-1"
-                        title="Editar nível"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                      <button onClick={() => handleRemoveSkill(ds.id)} className="text-red-400 hover:text-red-300 ml-1" title="Remover skill"><X size={12} /></button>
-                    </span>
-                  )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nível</span>
+                  <span style={{ color: 'var(--primary-light)', fontWeight: 600, fontSize: '0.875rem' }}>{ds.proficiencyLevel}</span>
                 </div>
                 <div className="progress-bar-bg">
-                  <div 
-                    className="progress-bar-fill" 
-                    style={{ width: `${progress}%`, transition: 'width 0.4s ease' }}
-                  ></div>
+                  <div className="progress-bar-fill" style={{ width: `${progress}%`, transition: 'width 0.4s ease' }}></div>
                 </div>
+
+                {/* Edit row — always below the bar */}
+                {isEditing ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px' }}>
+                    <select
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '12px', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)', border: '1px solid var(--glass-border)', borderRadius: '6px' }}
+                      value={editingLevel}
+                      onChange={e => setEditingLevel(e.target.value)}
+                    >
+                      {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                    <button
+                      onClick={() => handleSaveSkillLevel(ds)}
+                      style={{ color: '#68d391', fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}
+                      title="Salvar"
+                    >✓</button>
+                    <button
+                      onClick={() => setEditingSkillId(null)}
+                      style={{ color: '#fc8181', fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}
+                      title="Cancelar"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                    <button
+                      onClick={() => { setEditingSkillId(ds.id); setEditingLevel(ds.proficiencyLevel); }}
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '12px', color: '#a0aec0', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                      title="Editar nível"
+                    >
+                      <Pencil size={12} /> Editar
+                    </button>
+                    <button
+                      onClick={() => handleRemoveSkill(ds.id)}
+                      style={{ padding: '4px 10px', fontSize: '12px', color: '#fc8181', background: 'rgba(252,129,129,0.08)', border: '1px solid rgba(252,129,129,0.2)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Remover"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );

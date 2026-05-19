@@ -1,5 +1,6 @@
 package com.devskills.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,10 +14,12 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonIgnoreProperties({"comments", "votes"})
     private Post post;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
+    @JsonIgnoreProperties({"skills", "password"})
     private Developer author;
 
     @Column(nullable = false, length = 500)
@@ -24,6 +27,9 @@ public class Comment {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    private int upvotes = 0;
+    private int downvotes = 0;
 
     public Comment() {}
 
@@ -47,4 +53,11 @@ public class Comment {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public int getUpvotes() { return upvotes; }
+    public void setUpvotes(int upvotes) { this.upvotes = upvotes; }
+
+    public int getDownvotes() { return downvotes; }
+    public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
 }
+

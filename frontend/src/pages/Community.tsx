@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, ArrowUpCircle, ArrowDownCircle, Trash2, Edit2 } from 'lucide-react';
+import { MessageSquare, ArrowUpCircle, ArrowDownCircle, Trash2, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { Typewriter } from '../components/Typewriter';
 import { toast } from 'react-hot-toast';
@@ -29,7 +29,7 @@ export function Community() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSubreddit, setActiveSubreddit] = useState('Geral');
-  
+
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newSubreddit, setNewSubreddit] = useState('Geral');
@@ -42,7 +42,12 @@ export function Community() {
     setLoading(true);
     axios.get('/api/posts')
       .then((response) => {
-        setPosts(response.data.sort((a: Post, b: Post) => b.id - a.id));
+        const data: Post[] = response.data.sort((a: Post, b: Post) => b.id - a.id);
+        setPosts(data);
+        // open comments by default for all posts
+        const allOpen: Record<number, boolean> = {};
+        data.forEach((p: Post) => { allOpen[p.id] = true; });
+        setExpandedComments(allOpen);
         setLoading(false);
       })
       .catch((error) => {
@@ -55,9 +60,20 @@ export function Community() {
     fetchPosts();
   }, []);
 
+  // Auto-load comments for all posts since they're open by default
+  useEffect(() => {
+    posts.forEach((p: Post) => {
+      if (!comments[p.id]) {
+        axios.get(`/api/comments/post/${p.id}`)
+          .then(res => setComments(prev => ({ ...prev, [p.id]: res.data })))
+          .catch(() => {});
+      }
+    });
+  }, [posts]);
+
   const handleCreatePost = () => {
     if (!newTitle.trim() || !newContent.trim()) return;
-    
+
     axios.post('/api/posts', {
       title: newTitle,
       content: newContent,
@@ -94,6 +110,43 @@ export function Community() {
       .finally(() => setVotingId(null));
   };
 
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [comments, setComments] = useState<Record<number, any[]>>({});
+  const [commentText, setCommentText] = useState<Record<number, string>>({});
+
+  const toggleComments = (postId: number) => {
+    const nowOpen = !expandedComments[postId];
+    setExpandedComments(prev => ({ ...prev, [postId]: nowOpen }));
+    if (nowOpen && !comments[postId]) {
+      axios.get(`/api/comments/post/${postId}`)
+        .then(res => setComments(prev => ({ ...prev, [postId]: res.data })))
+        .catch(() => {});
+    }
+  };
+
+  const handlePostComment = (postId: number) => {
+    const text = commentText[postId]?.trim();
+    if (!text) return;
+    axios.post('/api/comments', { content: text, post: { id: postId } },
+      { headers: { Authorization: `Bearer ${authToken}` } })
+      .then(res => {
+        setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), res.data] }));
+        setCommentText(prev => ({ ...prev, [postId]: '' }));
+      })
+      .catch(err => toast.error("Erro ao comentar: " + err.message));
+  };
+
+  const handleCommentVote = (commentId: number, postId: number, voteValue: number) => {
+    axios.post(`/api/comments/${commentId}/vote`, { vote: voteValue }, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then(res => {
+        setComments(prev => ({
+          ...prev,
+          [postId]: (prev[postId] || []).map((c: any) => c.id === commentId ? res.data : c)
+        }));
+      })
+      .catch(() => {});
+  };
+
   const trendingTopics = useMemo(() => {
     const subreddits = posts.map(p => p.subreddit).filter(Boolean);
     const counts: Record<string, number> = {};
@@ -112,8 +165,8 @@ export function Community() {
 
         <div className="subreddit-tabs mb-4 flex gap-2 overflow-x-auto pb-2">
           {['Todos', ...trendingTopics].map(sub => (
-            <button 
-              key={sub} 
+            <button
+              key={sub}
               onClick={() => setActiveSubreddit(sub)}
               className={`badge ${activeSubreddit === sub ? 'primary' : 'secondary'} cursor-pointer`}
               style={{ padding: '8px 16px', fontSize: '14px', whiteSpace: 'nowrap' }}
@@ -125,14 +178,14 @@ export function Community() {
 
         {isAuthenticated ? (
           <div className="create-post glass-card mb-6">
-            <input 
-              type="text" 
-              placeholder="Título do post..." 
-              className="glass-input w-full mb-2" 
-              value={newTitle} 
-              onChange={e => setNewTitle(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Título do post..."
+              className="glass-input w-full mb-2"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
             />
-            <textarea 
+            <textarea
               placeholder="No que você está trabalhando ou qual a sua dúvida?"
               className="glass-input w-full mb-2"
               style={{ minHeight: '80px', resize: 'vertical', maxWidth: '100%', boxSizing: 'border-box', wordBreak: 'break-word' }}
@@ -140,14 +193,14 @@ export function Community() {
               onChange={e => setNewContent(e.target.value)}
             ></textarea>
             <div className="flex justify-between items-center mt-2">
-              <input 
+              <input
                 type="text"
-                className="glass-input" 
+                className="glass-input"
                 placeholder="Subreddit (ex: React)"
-                value={newSubreddit} 
+                value={newSubreddit}
                 onChange={e => setNewSubreddit(e.target.value.replace(/\s+/g, ''))}
               />
-              <button onClick={handleCreatePost} className="btn btn-primary">Publicar (Commit)</button>
+              <button onClick={handleCreatePost} className="btn btn-primary">Commit</button>
             </div>
           </div>
         ) : (
@@ -164,7 +217,7 @@ export function Community() {
           ) : (
             filteredPosts.map((post, index) => (
               <div key={post.id} className={`glass-card post-card delay-${(index % 5 + 1) * 100} flex gap-4`}>
-                
+
                 {/* Karma Column */}
                 <div className="flex flex-col items-center justify-start gap-1 pt-2" style={{ minWidth: '36px' }}>
                   {(() => {
@@ -215,21 +268,72 @@ export function Community() {
                       </button>
                     )}
                   </div>
-                  
+
                   <p className="post-content text-secondary">{post.content}</p>
-                  
-                  <div className="post-actions border-top mt-4 pt-3 flex gap-4">
-                    <button className="action-btn text-sm flex items-center gap-1">
-                      <MessageSquare size={16} /> Comentar
+
+                  <div className="post-actions border-top mt-4 pt-3 flex gap-4 items-center">
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', color: expandedComments[post.id] ? 'var(--primary-light)' : 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      <MessageSquare size={16} />
+                      {(comments[post.id] || []).length > 0 ? (comments[post.id] || []).length : ''} Comentários
+                      {expandedComments[post.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                   </div>
+
+                  {expandedComments[post.id] && (
+                    <div style={{ marginTop: '12px', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
+                      {(comments[post.id] || []).length === 0 && (
+                        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '10px' }}>Nenhum comentário ainda.</p>
+                      )}
+                      {(comments[post.id] || []).map((c: any) => {
+                          const cNet = c.upvotes - c.downvotes;
+                          const cColor = cNet > 0 ? '#4ade80' : cNet < 0 ? '#f87171' : 'var(--text-muted)';
+                          return (
+                            <div key={c.id} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                              <div style={{ width: 28, height: 28, borderRadius: '50%', background: `url(${c.author?.avatarUrl}) center/cover`, backgroundColor: '#4b5563', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', flexShrink: 0 }}>
+                                {!c.author?.avatarUrl && (c.author?.name || 'U').charAt(0)}
+                              </div>
+                              <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '6px 10px' }}>
+                                <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-light)', marginBottom: '2px' }}>@{c.author?.username}</p>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{c.content}</p>
+                                {isAuthenticated && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <button onClick={() => handleCommentVote(c.id, post.id, 1)} style={{ color: cNet > 0 ? '#4ade80' : 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ArrowUpCircle size={13} /></button>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: cColor }}>{cNet}</span>
+                                    <button onClick={() => handleCommentVote(c.id, post.id, -1)} style={{ color: cNet < 0 ? '#f87171' : 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ArrowDownCircle size={13} /></button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      {isAuthenticated && (
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                          <input
+                            type="text"
+                            placeholder="Comente..."
+                            className="glass-input"
+                            style={{ flex: 1, padding: '6px 10px', fontSize: '13px' }}
+                            value={commentText[post.id] || ''}
+                            onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
+                            onKeyDown={e => e.key === 'Enter' && handlePostComment(post.id)}
+                          />
+                          <button onClick={() => handlePostComment(post.id)} className="btn btn-primary" style={{ padding: '6px 12px' }}>
+                            <Send size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
-      
+
       <div className="community-sidebar glass-card">
         <h3>Subreddits Ativos</h3>
         <ul className="trending-list mt-4">

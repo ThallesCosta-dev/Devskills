@@ -18,6 +18,7 @@ C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\model\JobOf
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\controller\DevSkillsController.java
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\model\DeveloperSkill.java
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\controller\JobOfferController.java
+C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\exception\GlobalExceptionHandler.java
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\repository\JobOfferRepository.java
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\security\UserContext.java
 C:\Users\Thalles Costa\Desktop\Devskills\src\main\java\com\devskills\controller\NotificationController.java

@@ -1,8 +1,19 @@
+.tiptap-editor-wrapper {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .tiptap-editor-wrapper .ProseMirror {
   outline: none;
   min-height: 80px;
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .tiptap-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {

@@ -82,4 +82,20 @@ public class CommentController {
         commentRepository.delete(comment);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/vote")
+    public ResponseEntity<?> voteComment(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody java.util.Map<String, Integer> payload) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        int voteValue = payload.getOrDefault("vote", 0);
+        if (voteValue != 1 && voteValue != -1) return ResponseEntity.badRequest().body("Voto inválido");
+
+        Optional<Comment> commentOpt = commentRepository.findById(id);
+        if (commentOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Comment comment = commentOpt.get();
+        if (voteValue == 1) comment.setUpvotes(comment.getUpvotes() + 1);
+        else comment.setDownvotes(comment.getDownvotes() + 1);
+
+        return ResponseEntity.ok(commentRepository.save(comment));
+    }
 }

@@ -137,8 +137,11 @@ export function Profile() {
         <div className="profile-banner"></div>
         <div className="profile-info">
           <div className="flex justify-between items-start">
-            <div className="relative">
-              <div className="profile-avatar-large" style={{ backgroundImage: devData.avatarUrl ? `url(${devData.avatarUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: devData.avatarUrl ? 'transparent' : 'white' }}>
+            <div className="relative" style={{ display: 'inline-block' }}>
+              <div
+                className="profile-avatar-large"
+                style={{ backgroundImage: devData.avatarUrl ? `url(${devData.avatarUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: devData.avatarUrl ? 'transparent' : 'white' }}
+              >
                 {!devData.avatarUrl && (devData.name || 'D').charAt(0)}
               </div>
               {isEditing && (
@@ -146,11 +149,26 @@ export function Profile() {
                   <input type="file" ref={avatarInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
                   <button
                     onClick={() => avatarInputRef.current?.click()}
-                    className="btn btn-primary"
-                    style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '10px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: '2px solid rgba(255,255,255,0.3)' }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '0px',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: 'var(--primary)',
+                      border: '3px solid var(--bg-base)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      zIndex: 20,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.4)'
+                    }}
                     title="Alterar Foto"
                   >
-                    <Camera size={20} />
+                    <Camera size={16} />
                   </button>
                 </>
               )}
@@ -266,37 +284,52 @@ export function Profile() {
 
           <div className="skills-tags">
             {devData.skills && devData.skills.length > 0 ? devData.skills.map((ds: any) => (
-              <div key={ds.id} className="skill-tag flex items-center gap-2">
+              <div key={ds.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                 <span className="skill-tag-name">{ds.skill.name}</span>
                 {isMe && isEditing && editingSkillId === ds.id ? (
-                  <div className="flex items-center gap-1">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <select
-                      className="glass-input"
-                      style={{ padding: '2px 6px', fontSize: '12px' }}
+                      style={{ padding: '3px 8px', fontSize: '12px', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)', border: '1px solid var(--glass-border)', borderRadius: '6px' }}
                       value={editingLevel}
                       onChange={e => setEditingLevel(e.target.value)}
                     >
                       {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
-                    <button onClick={() => handleSaveSkillLevel(ds)} className="text-green-400 hover:text-green-300" title="Salvar">✓</button>
-                    <button onClick={() => setEditingSkillId(null)} className="text-red-400 hover:text-red-300" title="Cancelar">✕</button>
+                    <button
+                      onClick={() => handleSaveSkillLevel(ds)}
+                      style={{ color: '#68d391', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
+                      title="Salvar"
+                    >✓</button>
+                    <button
+                      onClick={() => setEditingSkillId(null)}
+                      style={{ color: '#fc8181', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
+                      title="Cancelar"
+                    >✕</button>
                   </div>
                 ) : (
-                  <span
-                    className={`badge ${ds.proficiencyLevel === 'Sênior' || ds.proficiencyLevel === 'Especialista' ? 'primary' : ds.proficiencyLevel === 'Pleno' ? 'success' : 'secondary'} ${isEditing ? 'cursor-pointer hover:opacity-80' : ''}`}
-                    onClick={() => isEditing && handleEditSkill(ds)}
-                    title={isEditing ? "Clique para alterar o nível" : ""}
-                  >
-                    {ds.proficiencyLevel}
-                  </span>
-                )}
-                {isMe && isEditing && editingSkillId !== ds.id && (
-                  <button onClick={() => handleRemoveSkill(ds.id)} className="text-red-400 hover:text-red-300 ml-1" title="Remover">×</button>
+                  <>
+                    <span
+                      className={`badge ${ds.proficiencyLevel === 'Sênior' || ds.proficiencyLevel === 'Especialista' ? 'primary' : ds.proficiencyLevel === 'Pleno' ? 'success' : 'secondary'}`}
+                      style={isEditing ? { cursor: 'pointer' } : {}}
+                      onClick={() => isEditing && handleEditSkill(ds)}
+                      title={isEditing ? 'Clique para alterar o nível' : ''}
+                    >
+                      {ds.proficiencyLevel}
+                    </span>
+                    {isMe && isEditing && (
+                      <button
+                        onClick={() => handleRemoveSkill(ds.id)}
+                        style={{ color: '#fc8181', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
+                        title="Remover"
+                      >×</button>
+                    )}
+                  </>
                 )}
               </div>
             )) : (
               <p className="text-secondary text-sm">Nenhuma habilidade cadastrada.</p>
             )}
+
           </div>
         </div>
       </div>
