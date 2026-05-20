@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Typewriter } from '../components/Typewriter';
 import { toast } from 'react-hot-toast';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { getFriendlyErrorMessage } from '../utils/errorUtils';
 import './Community.css';
 
 interface Developer {
@@ -106,7 +107,7 @@ export function Community() {
         fetchPosts();
         toast.success("Post criado com sucesso!");
       })
-      .catch(err => toast.error("Erro ao criar post: " + err.message));
+      .catch(err => toast.error("Não foi possível criar a publicação: " + getFriendlyErrorMessage(err)));
   };
 
   const handleDeletePost = (id: number) => {
@@ -116,7 +117,7 @@ export function Community() {
         fetchPosts();
         toast.success("Post apagado!");
       })
-      .catch(err => toast.error("Erro ao apagar: " + err.message));
+      .catch(err => toast.error("Não foi possível apagar a publicação: " + getFriendlyErrorMessage(err)));
   };
 
   const [votingId, setVotingId] = useState<number | null>(null);
@@ -126,7 +127,7 @@ export function Community() {
     setVotingId(id);
     axios.post(`/api/posts/${id}/vote`, { vote: voteValue }, { headers: { Authorization: `Bearer ${authToken}` } })
       .then(() => fetchPosts())
-      .catch(err => toast.error("Erro ao votar: " + err.message))
+      .catch(err => toast.error("Não foi possível registrar seu voto: " + getFriendlyErrorMessage(err)))
       .finally(() => setVotingId(null));
   };
 
@@ -156,7 +157,7 @@ export function Community() {
         setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), res.data] }));
         setCommentText(prev => ({ ...prev, [postId]: '' }));
       })
-      .catch(err => toast.error("Erro ao comentar: " + err.message))
+      .catch(err => toast.error("Não foi possível adicionar o comentário: " + getFriendlyErrorMessage(err)))
       .finally(() => setIsSubmittingComment(prev => ({ ...prev, [postId]: false })));
   };
 

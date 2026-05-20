@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Terminal, UserPlus } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'react-hot-toast';
+import { getFriendlyErrorMessage } from '../utils/errorUtils';
 import './Register.css';
 
 export function Register() {
@@ -33,7 +34,7 @@ export function Register() {
     });
 
     if (error) {
-      toast.error("Erro ao criar conta: " + error.message);
+      toast.error(getFriendlyErrorMessage(error));
       return;
     }
 

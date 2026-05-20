@@ -1,0 +1,332 @@
+.guide-layout {
+  padding-bottom: 3rem;
+  padding-top: 1rem;
+}
+
+.guide-header {
+  padding: 2.5rem;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.guide-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-deep);
+  padding: 0.8rem 1.25rem;
+  border-radius: 50px;
+  border: 1px solid var(--glass-border);
+  max-width: 600px;
+  margin: 1.5rem auto 0;
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.guide-category-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.guide-category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.3);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.category-icon {
+  font-size: 1.5rem;
+}
+
+.category-description {
+  margin-bottom: 1rem;
+}
+
+.category-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.guide-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.guide-link:hover {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--primary-color);
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+.guide-link span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 0.5rem;
+}
+
+.external-icon {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.guide-link:hover .external-icon {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Landing Page for Guest Users */
+.guide-landing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+}
+
+.guide-hero {
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 3.5rem;
+}
+
+.guide-hero h1 {
+  font-size: 3rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.guide-hero p {
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.guide-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 2.5rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.guide-preview-section {
+  width: 100%;
+  max-width: 1100px;
+  position: relative;
+}
+
+.guide-preview-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to top, var(--bg-base) 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+}
+
+.preview-cta-card {
+  text-align: center;
+  padding: 3rem 2.5rem;
+  z-index: 20;
+  max-width: 480px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Custom Premium CTA Buttons Container */
+.guide-cta-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.guide-cta-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%);
+  color: #ffffff !important;
+  padding: 0.7rem 1.75rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
+  border: none;
+  cursor: pointer;
+}
+
+.guide-cta-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.45);
+  filter: brightness(1.1);
+}
+
+.guide-cta-btn-primary:active {
+  transform: translateY(-1px);
+}
+
+.guide-cta-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main) !important;
+  padding: 0.7rem 1.75rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.guide-cta-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.guide-cta-btn-outline:active {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .guide-hero h1 {
+    font-size: 2.25rem;
+  }
+  
+  .guide-stats {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .guide-cta-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .guide-cta-btn-primary, .guide-cta-btn-outline {
+    width: 100%;
+  }
+}

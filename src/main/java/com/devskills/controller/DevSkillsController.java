@@ -85,6 +85,13 @@ public class DevSkillsController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/profile/id/{id}")
+    public ResponseEntity<Developer> getProfileById(@PathVariable String id) {
+        return developerRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/me/skills")
     public ResponseEntity<?> addSkill(@AuthenticationPrincipal Jwt jwt, @RequestBody java.util.Map<String, String> payload) {
         if (jwt == null) return ResponseEntity.status(401).build();

@@ -89,6 +89,17 @@ function truncate(str, maxLen = 2000) {
   return clean.length > maxLen ? clean.substring(0, maxLen - 3) + '...' : clean;
 }
 
+function formatToLocalDateTimeString(dateInput) {
+  if (!dateInput) return new Date().toISOString().split('.')[0];
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return new Date().toISOString().split('.')[0];
+    return d.toISOString().split('.')[0]; // Formato nativo "YYYY-MM-DDTHH:mm:ss" aceito perfeitamente pelo Java LocalDateTime
+  } catch (e) {
+    return new Date().toISOString().split('.')[0];
+  }
+}
+
 // ── Fonte 1: RemoteOK ─────────────────────────────────────────────────────────
 async function scrapeRemoteOK() {
   console.log('📡 Buscando vagas RemoteOK...');
@@ -111,7 +122,7 @@ async function scrapeRemoteOK() {
         salaryRange: j.salary_min && j.salary_max
           ? `$${Math.round(j.salary_min / 1000)}k–$${Math.round(j.salary_max / 1000)}k/yr`
           : null,
-        createdAt: j.date ? new Date(j.date).toISOString() : new Date().toISOString(),
+        createdAt: formatToLocalDateTimeString(j.date),
         externalId: `remoteok-${j.id}`,
       }));
   } catch (err) {
@@ -143,7 +154,7 @@ async function scrapeArbeitnow(pages = 3) {
           jobType: j.remote ? 'REMOTE' : 'ONSITE',
           tags: Array.isArray(j.tags) ? j.tags.slice(0, 10).join(',') : '',
           salaryRange: null,
-          createdAt: j.created_at ? (typeof j.created_at === 'number' || (!isNaN(j.created_at) && String(j.created_at).length === 10) ? new Date(j.created_at * 1000).toISOString() : new Date(j.created_at).toISOString()) : new Date().toISOString(),
+          createdAt: formatToLocalDateTimeString(j.created_at ? (typeof j.created_at === 'number' || (!isNaN(j.created_at) && String(j.created_at).length === 10) ? j.created_at * 1000 : j.created_at) : null),
           externalId: `arbeitnow-${j.slug}`,
         });
       }
@@ -180,7 +191,7 @@ async function scrapeJobicy() {
         salaryRange: j.annualSalaryMin && j.annualSalaryMax
           ? `$${Math.round(j.annualSalaryMin / 1000)}k–$${Math.round(j.annualSalaryMax / 1000)}k/yr`
           : null,
-        createdAt: j.pubDate ? new Date(j.pubDate).toISOString() : new Date().toISOString(),
+        createdAt: formatToLocalDateTimeString(j.pubDate),
         externalId: `jobicy-${j.id}`,
       }));
   } catch (err) {
@@ -247,7 +258,7 @@ async function scrapeApiBR(pages = 3) {
           jobType: jobType,
           tags: tagNames.slice(0, 10).join(','),
           salaryRange: null,
-          createdAt: issue.created_at ? new Date(issue.created_at).toISOString() : new Date().toISOString(),
+          createdAt: formatToLocalDateTimeString(issue.created_at),
           externalId: `apibr-${issue.id}`,
         });
       }
@@ -308,7 +319,7 @@ async function scrapeGitHubIssues(owner, repo, platform) {
           jobType: jobType,
           tags: tagNames.slice(0, 10).join(','),
           salaryRange: null,
-          createdAt: issue.created_at ? new Date(issue.created_at).toISOString() : new Date().toISOString(),
+          createdAt: formatToLocalDateTimeString(issue.created_at),
           externalId: `github-${issue.id}`,
         };
       });
@@ -366,7 +377,9 @@ async function main() {
         console.error(`   ❌ Erro ${result.status}:`, result.body);
       }
     } catch (err) {
-      console.error('   ❌ Erro ao enviar lote:', err.message);
+      console.error('   ❌ Erro ao enviar lote:');
+      console.error('      > Verifique se o servidor Spring Boot está rodando em http://localhost:8080');
+      console.error('      > Detalhe técnico:', err.message || err);
     }
 
     // Pausa entre lotes

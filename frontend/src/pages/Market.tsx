@@ -32,11 +32,11 @@ function formatPublishedDate(dateStr?: string) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
-  
+
   // Diferença em milissegundos
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) {
     const hours = Math.floor(diffTime / (1000 * 60 * 60));
     if (hours < 1) {
@@ -47,15 +47,15 @@ function formatPublishedDate(dateStr?: string) {
     if (hours === 1) return 'Publicada há 1 hora';
     return `Publicada há ${hours} horas`;
   }
-  
+
   if (diffDays === 1) {
     return 'Publicada ontem';
   }
-  
+
   if (diffDays < 7) {
     return `Publicada há ${diffDays} dias`;
   }
-  
+
   return `Publicada em ${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }
 
@@ -237,7 +237,7 @@ export function Market() {
           <h1 className="title-xl"><Typewriter text="Mercado Inteligente" speed={80} /></h1>
           <div className="flex items-center gap-3 flex-wrap">
             <p className="text-secondary">
-              Vagas de TI coletadas automaticamente de diversas plataformas online!.
+              Vagas de TI coletadas automaticamente de diversas plataformas online!
             </p>
             {isRefreshing ? (
               <span style={{ fontSize: '12px', color: 'var(--primary-light)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -250,18 +250,36 @@ export function Market() {
             ) : null}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-sm items-center">
           <button
             onClick={() => { setPage(0); fetchJobs(0, false, true); }}
             className="btn btn-outline"
             title="Atualizar vagas agora"
-            style={{ opacity: isRefreshing ? 0.5 : 1 }}
+            style={{
+              opacity: isRefreshing ? 0.5 : 1,
+              padding: '0.55rem 0.85rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '38px'
+            }}
             disabled={isRefreshing}
           >
-            <RefreshCw size={16} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw size={14} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
           </button>
-          <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary">
-            <Plus size={18} /> Adicionar Vaga
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="btn btn-primary"
+            style={{
+              padding: '0.55rem 1.25rem',
+              fontSize: '0.9rem',
+              height: '38px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Plus size={16} /> Adicionar Vaga
           </button>
         </div>
       </div>
@@ -275,7 +293,17 @@ export function Market() {
           <input type="text" placeholder="Plataforma (ex: LinkedIn, Gupy)" className="glass-input" value={newJob.sourcePlatform} onChange={e => setNewJob({ ...newJob, sourcePlatform: e.target.value })} />
           <input required type="url" placeholder="Link de Redirecionamento (URL)" className="glass-input" style={{ gridColumn: '1 / -1' }} value={newJob.sourceUrl} onChange={e => setNewJob({ ...newJob, sourceUrl: e.target.value })} />
           <div style={{ gridColumn: '1 / -1' }} className="flex justify-end mt-2">
-            <button type="submit" className="btn btn-primary">Salvar Vaga</button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{
+                padding: '0.55rem 1.25rem',
+                fontSize: '0.9rem',
+                height: '38px'
+              }}
+            >
+              Salvar Vaga
+            </button>
           </div>
         </form>
       )}

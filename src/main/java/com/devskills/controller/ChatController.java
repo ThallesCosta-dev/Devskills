@@ -83,4 +83,37 @@ public class ChatController {
         Message msg = new Message(senderOpt.get(), receiverOpt.get(), content.trim());
         return ResponseEntity.ok(messageRepository.save(msg));
     }
+
+    // Send a message by username
+    @PostMapping("/send-by-username")
+    public ResponseEntity<?> sendMessageByUsername(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> payload) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        String senderId = jwt.getSubject();
+        
+        String username = payload.get("username");
+        String content = payload.get("content");
+        
+        if (username == null || content == null || content.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Username e conteúdo são obrigatórios");
+        }
+        
+        String cleanUsername = username.trim();
+        if (cleanUsername.startsWith("@")) {
+            cleanUsername = cleanUsername.substring(1);
+        }
+        
+        Optional<Developer> senderOpt = developerRepository.findById(senderId);
+        Optional<Developer> receiverOpt = developerRepository.findByUsername(cleanUsername);
+        
+        if (senderOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Remetente não encontrado");
+        }
+        
+        if (receiverOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Usuário @" + cleanUsername + " não encontrado");
+        }
+        
+        Message msg = new Message(senderOpt.get(), receiverOpt.get(), content.trim());
+        return ResponseEntity.ok(messageRepository.save(msg));
+    }
 }

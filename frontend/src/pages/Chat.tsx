@@ -14,6 +14,9 @@ export function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [activeUser, setActiveUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [targetUsername, setTargetUsername] = useState('');
+  const [newDirectMessage, setNewDirectMessage] = useState('');
+  const [sendingNew, setSendingNew] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const authToken = localStorage.getItem('auth_token');
@@ -31,17 +34,21 @@ export function Chat() {
 
   // Fetch specific conversation if activeUserId is present
   useEffect(() => {
-    if (activeUserId) {
+    if (activeUserId && activeUserId !== 'new') {
       setLoading(true);
       
-      // If the user clicked "message" on someone not in contacts yet, we need to fetch their profile to show their name
-      axios.get(`/api/devskills/profile/me`).then(() => {
-        // We just need any endpoint to get user by ID, wait, we don't have a GET by ID endpoint?
-        // Let's just find them in contacts, if not, we can display 'New Contact' until they reply
-        const existing = contacts.find(c => c.id === activeUserId);
-        if (existing) setActiveUser(existing);
-        else setActiveUser({ id: activeUserId, name: 'Usuário' }); // Fallback
-      });
+      const existing = contacts.find(c => c.id === activeUserId);
+      if (existing) {
+        setActiveUser(existing);
+      } else {
+        axios.get(`/api/devskills/profile/id/${activeUserId}`, { headers: { Authorization: `Bearer ${authToken}` } })
+          .then(res => {
+            setActiveUser(res.data);
+          })
+          .catch(() => {
+            setActiveUser({ id: activeUserId, name: 'Usuário' }); // Fallback
+          });
+      }
 
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
@@ -53,7 +60,7 @@ export function Chat() {
   }, [activeUserId, contacts]);
 
   const fetchMessages = () => {
-    if (!activeUserId) return;
+    if (!activeUserId || activeUserId === 'new') return;
     axios.get(`/api/chat/history/${activeUserId}`, { headers: { Authorization: `Bearer ${authToken}` } })
       .then(res => {
         setMessages(res.data);
@@ -73,6 +80,7 @@ export function Chat() {
       .then(res => {
         setMessages([...messages, res.data]);
         setNewMessage('');
+        toast.success("Mensagem enviada!");
         // If it was a new contact, refresh contacts
         if (!contacts.find(c => c.id === activeUserId)) {
           axios.get('/api/chat/contacts', { headers: { Authorization: `Bearer ${authToken}` } })
@@ -80,6 +88,38 @@ export function Chat() {
         }
       })
       .catch(err => toast.error("Erro ao enviar mensagem"));
+  };
+
+  const handleSendByUsername = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetUsername.trim() || !newDirectMessage.trim()) return;
+
+    setSendingNew(true);
+    axios.post('/api/chat/send-by-username', { 
+      username: targetUsername, 
+      content: newDirectMessage 
+    }, { 
+      headers: { Authorization: `Bearer ${authToken}` } 
+    })
+      .then(res => {
+        toast.success("Mensagem enviada com sucesso!");
+        setTargetUsername('');
+        setNewDirectMessage('');
+        
+        // Refresh contacts
+        axios.get('/api/chat/contacts', { headers: { Authorization: `Bearer ${authToken}` } })
+          .then(contactsRes => {
+            setContacts(contactsRes.data);
+            // Switch to the newly created conversation
+            const receiver = res.data.receiver;
+            navigate(`/chat/${receiver.id}`);
+          });
+      })
+      .catch(err => {
+        const errorMsg = err.response?.data || "Erro ao enviar mensagem";
+        toast.error(errorMsg);
+      })
+      .finally(() => setSendingNew(false));
   };
 
   if (!isAuthenticated) {
@@ -102,9 +142,18 @@ export function Chat() {
   return (
     <div className="container animate-fade-in chat-layout">
       <div className="chat-sidebar glass-card">
-        <h3 className="mb-4 font-bold text-lg flex items-center gap-2">
-          <MessageCircle /> Mensagens
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-lg flex items-center gap-2" style={{ margin: 0 }}>
+            <MessageCircle /> Mensagens
+          </h3>
+          <button 
+            onClick={() => navigate('/chat/new')} 
+            className="btn btn-outline"
+            style={{ padding: '0.3rem 0.65rem', fontSize: '0.8rem', height: '28px', borderRadius: '4px' }}
+          >
+            + Nova
+          </button>
+        </div>
         <div className="contacts-list">
           {contacts.length === 0 ? (
             <p className="text-muted text-sm text-center py-4">Nenhum histórico de conversas.</p>
@@ -129,7 +178,52 @@ export function Chat() {
       </div>
 
       <div className="chat-main glass-card">
-        {activeUser ? (
+        {activeUserId === 'new' ? (
+          <div className="flex flex-col justify-center max-w-md mx-auto h-full animate-fade-in" style={{ padding: '2rem 0' }}>
+            <h3 className="title-md mb-2 flex items-center gap-2">
+              <MessageCircle className="text-primary" /> Nova Mensagem Privada
+            </h3>
+            <p className="text-secondary text-sm mb-6">
+              Digite o @username do desenvolvedor e a mensagem abaixo para iniciar uma nova conversa direta.
+            </p>
+            
+            <form onSubmit={handleSendByUsername} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-secondary">Destinatário (@username)</label>
+                <input 
+                  required
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Ex: @thallescosta"
+                  value={targetUsername}
+                  onChange={e => setTargetUsername(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-secondary">Mensagem</label>
+                <textarea 
+                  required
+                  rows={4}
+                  className="glass-input" 
+                  placeholder="Escreva sua mensagem privada aqui..." 
+                  style={{ resize: 'none', padding: '12px', height: '120px' }}
+                  value={newDirectMessage}
+                  onChange={e => setNewDirectMessage(e.target.value)}
+                />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="btn btn-primary mt-2" 
+                style={{ height: '42px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                disabled={sendingNew || !targetUsername.trim() || !newDirectMessage.trim()}
+              >
+                {sendingNew ? 'Enviando...' : 'Enviar Mensagem Directa'}
+              </button>
+            </form>
+          </div>
+        ) : activeUser ? (
           <>
             <div className="chat-header border-bottom pb-3 mb-4 flex items-center gap-3">
               <div className="contact-avatar" style={{ backgroundImage: activeUser.avatarUrl ? `url(${activeUser.avatarUrl})` : 'none' }}>

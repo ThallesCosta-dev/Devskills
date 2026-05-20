@@ -6,8 +6,10 @@ import { Market } from './pages/Market';
 import { Profile } from './pages/Profile';
 import { Timeline } from './pages/Timeline';
 import { Chat } from './pages/Chat';
+import { ChatWidget } from './components/ChatWidget';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { Guide } from './pages/Guide';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 
@@ -28,6 +30,7 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/:activeUserId" element={<Chat />} />
             <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/guide" element={<Guide />} />
             {/* Outras rotas serão adicionadas aqui */}
             <Route path="*" element={
               <div className="container">
@@ -37,6 +40,7 @@ function App() {
             } />
           </Routes>
         </main>
+        <ChatWidget />
       </div>
     </Router>
   );

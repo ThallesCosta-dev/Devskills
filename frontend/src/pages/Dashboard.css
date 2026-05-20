@@ -9,32 +9,42 @@
 
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+
+.skill-card {
+  padding: 16px !important;
 }
 
 .skill-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .skill-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background: rgba(138, 43, 226, 0.1);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(138, 43, 226, 0.08);
   color: var(--primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.15);
+}
+
+.skill-icon svg {
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .skill-name {
-  font-size: 1.25rem;
-  margin-bottom: var(--space-xl);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
   color: var(--text-primary);
 }
 
@@ -56,4 +66,190 @@
   border-radius: var(--radius-full);
   transition: width 1s ease-out;
   box-shadow: 0 0 10px var(--primary-light);
+}
+
+/* Radar Premium Dashboard Styles */
+.radar-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.radar-metric-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.radar-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary);
+  opacity: 0.7;
+}
+
+.radar-metric-card.success::before {
+  background: var(--secondary);
+}
+
+.radar-metric-card.accent::before {
+  background: #f59e0b;
+}
+
+.radar-metric-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-light);
+  flex-shrink: 0;
+}
+
+.radar-metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.radar-metric-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.radar-metric-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.radar-metric-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Insights Columns */
+.radar-insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+  margin-top: 30px;
+}
+
+@media (max-width: 992px) {
+  .radar-insights-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.insight-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.insight-recommendation-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.insight-recommendation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--primary-light);
+}
+
+.insight-recommendation-dot.ready {
+  background: var(--secondary);
+  box-shadow: 0 0 8px #68d391;
+}
+
+/* Job Match Cards */
+.job-matches-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.job-match-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.job-match-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(138, 43, 226, 0.3);
+}
+
+.job-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.job-match-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.job-match-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.job-match-tag-pill {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(138, 43, 226, 0.1);
+  color: var(--primary-light);
+  border: 1px solid rgba(138, 43, 226, 0.15);
 }

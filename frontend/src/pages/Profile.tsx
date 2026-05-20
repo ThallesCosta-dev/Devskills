@@ -6,6 +6,7 @@ import { Typewriter } from '../components/Typewriter';
 import { toast } from 'react-hot-toast';
 import { uploadImageToSupabase } from '../utils/uploadImage';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { getFriendlyErrorMessage } from '../utils/errorUtils';
 import './Profile.css';
 
 export function Profile() {
@@ -67,9 +68,9 @@ export function Profile() {
     }).catch(err => {
       console.error("Erro ao salvar", err);
       if (err.response?.status === 409) {
-        toast.error("Username já está em uso!");
+        toast.error("Este nome de usuário já está em uso. Por favor, escolha outro!");
       } else {
-        toast.error(`Erro ao salvar: ${err.response?.data?.message || err.response?.data || err.message}`);
+        toast.error("Não foi possível salvar os dados do perfil: " + getFriendlyErrorMessage(err));
       }
     });
   };
@@ -96,7 +97,7 @@ export function Profile() {
       setDevData(res.data);
       setNewSkillName('');
       toast.success("Habilidade adicionada!");
-    }).catch(err => toast.error(err.response?.data || "Erro ao adicionar habilidade"));
+    }).catch(err => toast.error("Não foi possível adicionar a habilidade: " + getFriendlyErrorMessage(err)));
   };
 
   const handleRemoveSkill = (devSkillId: number) => {
@@ -105,7 +106,7 @@ export function Profile() {
     }).then(() => {
       fetchProfile();
       toast.success("Habilidade removida!");
-    }).catch(err => toast.error("Erro ao remover: " + err.message));
+    }).catch(err => toast.error("Não foi possível remover a habilidade: " + getFriendlyErrorMessage(err)));
   };
 
   const [editingSkillId, setEditingSkillId] = useState<number | null>(null);
@@ -125,7 +126,7 @@ export function Profile() {
       fetchProfile();
       setEditingSkillId(null);
       toast.success("Nível atualizado!");
-    }).catch(err => toast.error("Erro ao atualizar nível."));
+    }).catch(err => toast.error("Não foi possível atualizar o nível da habilidade: " + getFriendlyErrorMessage(err)));
   };
 
   if (loading) return <LoadingSpinner text="Carregando perfil..." />;
@@ -182,9 +183,14 @@ export function Profile() {
               </button>
             )}
             {!isMe && (
-              <a href={`/chat/${devData.id}`} className="btn btn-primary mt-4 flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('openChat', { detail: { userId: devData.id, userName: devData.name } }));
+                }}
+                className="btn btn-primary mt-4 flex items-center gap-2"
+              >
                 <MessageCircle size={18} /> Enviar Mensagem
-              </a>
+              </button>
             )}
           </div>
           

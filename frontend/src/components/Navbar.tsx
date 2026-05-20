@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Terminal, Users, Briefcase, UserCircle, LogOut, Activity, Bell, Check, MessageCircle } from 'lucide-react';
+import { Terminal, Users, Briefcase, UserCircle, LogOut, Activity, Bell, Check, BookOpen } from 'lucide-react';
 import axios from 'axios';
 import './Navbar.css';
 
@@ -50,7 +50,7 @@ export function Navbar() {
     { name: 'Timeline', path: '/timeline', icon: <Activity size={20} /> },
     { name: 'Comunidade', path: '/community', icon: <Users size={20} /> },
     { name: 'Mercado', path: '/market', icon: <Briefcase size={20} /> },
-    { name: 'Chat', path: '/chat', icon: <MessageCircle size={20} /> },
+    { name: 'Guia', path: '/guide', icon: <BookOpen size={20} /> },
   ];
 
   const handleLogout = () => {

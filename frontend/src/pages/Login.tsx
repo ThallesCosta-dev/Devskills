@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Terminal, LogIn } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'react-hot-toast';
+import { getFriendlyErrorMessage } from '../utils/errorUtils';
 import './Login.css';
 
 export function Login() {
@@ -18,7 +19,7 @@ export function Login() {
     });
 
     if (error) {
-      toast.error("Erro ao fazer login: " + error.message);
+      toast.error(getFriendlyErrorMessage(error));
       return;
     }
 
