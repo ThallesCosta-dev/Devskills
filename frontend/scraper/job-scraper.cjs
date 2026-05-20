@@ -1,7 +1,7 @@
 /**
  * DevSkills — Mercado Inteligente Job Scraper
  * 
- * Fontes: RemoteOK (zero auth) + Arbeitnow (zero auth)
+ * Fontes: ApiBR (vagas BR reais) + RemoteOK + Arbeitnow + Jobicy
  * Uso:    node frontend/scraper/job-scraper.cjs
  *         (executado automaticamente pelo iniciar.bat)
  * 
@@ -111,6 +111,7 @@ async function scrapeRemoteOK() {
         salaryRange: j.salary_min && j.salary_max
           ? `$${Math.round(j.salary_min / 1000)}k–$${Math.round(j.salary_max / 1000)}k/yr`
           : null,
+        createdAt: j.date ? new Date(j.date).toISOString() : new Date().toISOString(),
         externalId: `remoteok-${j.id}`,
       }));
   } catch (err) {
@@ -142,6 +143,7 @@ async function scrapeArbeitnow(pages = 3) {
           jobType: j.remote ? 'REMOTE' : 'ONSITE',
           tags: Array.isArray(j.tags) ? j.tags.slice(0, 10).join(',') : '',
           salaryRange: null,
+          createdAt: j.created_at ? (typeof j.created_at === 'number' || (!isNaN(j.created_at) && String(j.created_at).length === 10) ? new Date(j.created_at * 1000).toISOString() : new Date(j.created_at).toISOString()) : new Date().toISOString(),
           externalId: `arbeitnow-${j.slug}`,
         });
       }
@@ -178,10 +180,140 @@ async function scrapeJobicy() {
         salaryRange: j.annualSalaryMin && j.annualSalaryMax
           ? `$${Math.round(j.annualSalaryMin / 1000)}k–$${Math.round(j.annualSalaryMax / 1000)}k/yr`
           : null,
+        createdAt: j.pubDate ? new Date(j.pubDate).toISOString() : new Date().toISOString(),
         externalId: `jobicy-${j.id}`,
       }));
   } catch (err) {
     console.error('  ❌ Jobicy erro:', err.message);
+    return [];
+  }
+}
+
+// ── Fonte 4: ApiBR — Vagas Brasileiras Reais ─────────────────────────────────
+async function scrapeApiBR(pages = 3) {
+  console.log('🇧🇷 Buscando vagas brasileiras (ApiBR)...');
+  const allJobs = [];
+
+  for (let page = 1; page <= pages; page++) {
+    try {
+      const data = await fetchJson(`https://apibr.com/vagas/api/v2/issues?page=${page}&per_page=50`);
+      const issues = Array.isArray(data) ? data : [];
+      if (issues.length === 0) break;
+
+      for (const issue of issues) {
+        if (!issue.title) continue;
+
+        // Extrai tags dos labels
+        const labels = Array.isArray(issue.labels) ? issue.labels : [];
+        const tagNames = labels.map(l => l.name).filter(Boolean);
+
+        // Detecta tipo de vaga a partir do título e labels
+        const titleLower = issue.title.toLowerCase();
+        const allText = (issue.title + ' ' + tagNames.join(' ')).toLowerCase();
+        let jobType = 'ONSITE';
+        if (allText.includes('remoto') || allText.includes('remote') || allText.includes('home office')) {
+          jobType = 'REMOTE';
+        } else if (allText.includes('híbrido') || allText.includes('hibrido') || allText.includes('hybrid')) {
+          jobType = 'HYBRID';
+        }
+
+        // Detecta localização a partir das keywords ou labels
+        let location = 'Brasil';
+        if (Array.isArray(issue.keywords) && issue.keywords.length > 0) {
+          location = issue.keywords.join(', ');
+        }
+        if (jobType === 'REMOTE') location = 'Remoto - Brasil';
+
+        // Limpa o título removendo prefixos de formato [Remoto] etc.
+        let cleanTitle = issue.title.replace(/^\[[^\]]*\]\s*/g, '').trim();
+        if (!cleanTitle) cleanTitle = issue.title;
+
+        // Nome do repo como plataforma amigável
+        const repoName = issue.repository?.full_name || 'ApiBR';
+        const platform = repoName.includes('backend') ? 'Backend-BR'
+          : repoName.includes('frontend') ? 'Frontend-BR'
+          : repoName.includes('react') ? 'React-Brasil'
+          : repoName.includes('php') ? 'PHP-Brasil'
+          : repoName.includes('flutter') ? 'Flutter-Brasil'
+          : 'ApiBR Vagas';
+
+        allJobs.push({
+          title: cleanTitle,
+          company: issue.user?.login || 'Empresa brasileira',
+          description: truncate(`Vaga publicada em ${repoName}. Labels: ${tagNames.join(', ')}`),
+          sourceUrl: issue.url || `https://github.com/${repoName}/issues/${issue.number}`,
+          sourcePlatform: platform,
+          location: location,
+          jobType: jobType,
+          tags: tagNames.slice(0, 10).join(','),
+          salaryRange: null,
+          createdAt: issue.created_at ? new Date(issue.created_at).toISOString() : new Date().toISOString(),
+          externalId: `apibr-${issue.id}`,
+        });
+      }
+
+      console.log(`   Página ${page}: ${issues.length} vagas coletadas`);
+      await new Promise(r => setTimeout(r, 500));
+    } catch (err) {
+      console.error(`  ❌ ApiBR página ${page} erro:`, err.message);
+      break;
+    }
+  }
+
+  return allJobs;
+}
+
+// ── Fonte 5: API de Vagas Oficial do GitHub (Markdown Completo) ───────────────
+async function scrapeGitHubIssues(owner, repo, platform) {
+  console.log(`🇧🇷 Buscando vagas reais diretamente da API do GitHub: ${owner}/${repo}...`);
+  try {
+    const data = await fetchJson(`https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=25`);
+    const issues = Array.isArray(data) ? data : [];
+    
+    return issues
+      .filter(issue => issue.title && !issue.pull_request) // Ignora Pull Requests
+      .map(issue => {
+        // Extrai tags dos labels
+        const tagNames = Array.isArray(issue.labels) 
+          ? issue.labels.map(l => typeof l === 'object' ? l.name : l).filter(Boolean)
+          : [];
+        
+        // Detecta tipo de vaga a partir do título e das tags
+        const allText = (issue.title + ' ' + tagNames.join(' ')).toLowerCase();
+        let jobType = 'ONSITE';
+        if (allText.includes('remoto') || allText.includes('remote') || allText.includes('home office')) {
+          jobType = 'REMOTE';
+        } else if (allText.includes('híbrido') || allText.includes('hibrido') || allText.includes('hybrid')) {
+          jobType = 'HYBRID';
+        }
+
+        // Detecta localização
+        let location = 'Brasil';
+        if (jobType === 'REMOTE') location = 'Remoto - Brasil';
+
+        // Limpa o título
+        let cleanTitle = issue.title.replace(/^\[[^\]]*\]\s*/g, '').trim();
+        if (!cleanTitle) cleanTitle = issue.title;
+
+        // Trunca a descrição real em Markdown vinda da issue
+        const description = truncate(issue.body || cleanTitle, 2000);
+
+        return {
+          title: cleanTitle,
+          company: issue.user?.login || 'Empresa brasileira',
+          description: description,
+          sourceUrl: issue.html_url || `https://github.com/${owner}/${repo}/issues/${issue.number}`,
+          sourcePlatform: platform,
+          location: location,
+          jobType: jobType,
+          tags: tagNames.slice(0, 10).join(','),
+          salaryRange: null,
+          createdAt: issue.created_at ? new Date(issue.created_at).toISOString() : new Date().toISOString(),
+          externalId: `github-${issue.id}`,
+        };
+      });
+  } catch (err) {
+    console.error(`  ❌ GitHub ${owner}/${repo} erro:`, err.message);
     return [];
   }
 }
@@ -192,15 +324,18 @@ async function main() {
   console.log(`⏰ ${new Date().toLocaleString('pt-BR')}\n`);
 
   // Coleta de todas as fontes em paralelo
-  const [remoteOkJobs, arbeitnowJobs, jobicyJobs] = await Promise.all([
+  const [apiBrJobs, githubBackendJobs, githubFrontendJobs, remoteOkJobs, arbeitnowJobs, jobicyJobs] = await Promise.all([
+    scrapeApiBR(2),
+    scrapeGitHubIssues('backend-br', 'vagas', 'Backend-BR'),
+    scrapeGitHubIssues('frontendbr', 'vagas', 'Frontend-BR'),
     scrapeRemoteOK(),
-    scrapeArbeitnow(3),
+    scrapeArbeitnow(2),
     scrapeJobicy(),
   ]);
 
-  const allJobs = [...remoteOkJobs, ...arbeitnowJobs, ...jobicyJobs];
+  const allJobs = [...apiBrJobs, ...githubBackendJobs, ...githubFrontendJobs, ...remoteOkJobs, ...arbeitnowJobs, ...jobicyJobs];
   console.log(`\n📦 Total coletado: ${allJobs.length} vagas`);
-  console.log(`   RemoteOK: ${remoteOkJobs.length} | Arbeitnow: ${arbeitnowJobs.length} | Jobicy: ${jobicyJobs.length}`);
+  console.log(`   🇧🇷 ApiBR: ${apiBrJobs.length} | GitHub Backend-BR: ${githubBackendJobs.length} | GitHub Frontend-BR: ${githubFrontendJobs.length} | RemoteOK: ${remoteOkJobs.length} | Arbeitnow: ${arbeitnowJobs.length} | Jobicy: ${jobicyJobs.length}`);
 
   if (allJobs.length === 0) {
     console.log('⚠️  Nenhuma vaga coletada. Verifique a conexão com a internet.');

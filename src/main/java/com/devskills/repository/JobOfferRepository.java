@@ -13,12 +13,11 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
     boolean existsByExternalId(String externalId);
 
     @org.springframework.data.jpa.repository.Query("SELECT j FROM JobOffer j LEFT JOIN FETCH j.author")
-    org.springframework.data.domain.Page<JobOffer> findAllWithAuthor(org.springframework.data.domain.Pageable pageable);
+    java.util.List<JobOffer> findAllWithAuthor();
 
     @org.springframework.data.jpa.repository.Query("SELECT j FROM JobOffer j LEFT JOIN FETCH j.author WHERE j.jobType = :jobType")
-    org.springframework.data.domain.Page<JobOffer> findByJobTypeWithAuthor(
-        @org.springframework.data.repository.query.Param("jobType") String jobType,
-        org.springframework.data.domain.Pageable pageable
+    java.util.List<JobOffer> findByJobTypeWithAuthor(
+        @org.springframework.data.repository.query.Param("jobType") String jobType
     );
 
     @org.springframework.data.jpa.repository.Query(
@@ -28,9 +27,8 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
         "OR LOWER(j.tags) LIKE LOWER(CONCAT('%', :search, '%')) " +
         "OR LOWER(j.location) LIKE LOWER(CONCAT('%', :search, '%'))"
     )
-    org.springframework.data.domain.Page<JobOffer> findBySearchWithAuthor(
-        @org.springframework.data.repository.query.Param("search") String search,
-        org.springframework.data.domain.Pageable pageable
+    java.util.List<JobOffer> findBySearchWithAuthor(
+        @org.springframework.data.repository.query.Param("search") String search
     );
 
     @org.springframework.data.jpa.repository.Query(
@@ -42,9 +40,8 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
         "OR LOWER(j.location) LIKE LOWER(CONCAT('%', :search, '%'))" +
         ")"
     )
-    org.springframework.data.domain.Page<JobOffer> findBySearchAndJobTypeWithAuthor(
+    java.util.List<JobOffer> findBySearchAndJobTypeWithAuthor(
         @org.springframework.data.repository.query.Param("search") String search,
-        @org.springframework.data.repository.query.Param("jobType") String jobType,
-        org.springframework.data.domain.Pageable pageable
+        @org.springframework.data.repository.query.Param("jobType") String jobType
     );
 }

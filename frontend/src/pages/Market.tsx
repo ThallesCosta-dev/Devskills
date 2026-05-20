@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Building, ExternalLink, Zap, ThumbsUp, ThumbsDown, Plus, Trash2, Briefcase, DollarSign, Globe, Filter, RefreshCw } from 'lucide-react';
+import { Search, MapPin, Building, ExternalLink, Zap, ThumbsUp, ThumbsDown, Plus, Trash2, Briefcase, DollarSign, Globe, Filter, RefreshCw, Calendar } from 'lucide-react';
 import axios from 'axios';
 import { Typewriter } from '../components/Typewriter';
 import { toast } from 'react-hot-toast';
@@ -25,6 +25,38 @@ interface JobOffer {
   upvotes: number;
   downvotes: number;
   author: Developer;
+  createdAt?: string;
+}
+
+function formatPublishedDate(dateStr?: string) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  
+  // Diferença em milissegundos
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    const hours = Math.floor(diffTime / (1000 * 60 * 60));
+    if (hours < 1) {
+      const minutes = Math.floor(diffTime / (1000 * 60));
+      if (minutes < 5) return 'Publicada agora há pouco';
+      return `Publicada há ${minutes} minutos`;
+    }
+    if (hours === 1) return 'Publicada há 1 hora';
+    return `Publicada há ${hours} horas`;
+  }
+  
+  if (diffDays === 1) {
+    return 'Publicada ontem';
+  }
+  
+  if (diffDays < 7) {
+    return `Publicada há ${diffDays} dias`;
+  }
+  
+  return `Publicada em ${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }
 
 export function Market() {
@@ -42,6 +74,7 @@ export function Market() {
   // Estados de Paginação
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const authToken = localStorage.getItem('auth_token');
   const isAuthenticated = !!authToken;
@@ -50,6 +83,7 @@ export function Market() {
   const fetchJobs = (pageToFetch = 0, append = false, silent = false) => {
     if (!silent && !append) setLoading(true);
     if (silent) setIsRefreshing(true);
+    if (append) setLoadingMore(true);
 
     axios.get('/api/jobs/market', {
       params: {
@@ -71,11 +105,13 @@ export function Market() {
         setLastUpdated(new Date());
         setLoading(false);
         setIsRefreshing(false);
+        setLoadingMore(false);
       })
       .catch((error) => {
         console.error("Erro ao buscar vagas do backend", error);
         setLoading(false);
         setIsRefreshing(false);
+        setLoadingMore(false);
       });
   };
 
@@ -201,7 +237,7 @@ export function Market() {
           <h1 className="title-xl"><Typewriter text="Mercado Inteligente" speed={80} /></h1>
           <div className="flex items-center gap-3 flex-wrap">
             <p className="text-secondary">
-              Vagas de TI coletadas automaticamente de RemoteOK e Arbeitnow.
+              Vagas de TI coletadas automaticamente de diversas plataformas online!.
             </p>
             {isRefreshing ? (
               <span style={{ fontSize: '12px', color: 'var(--primary-light)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -215,9 +251,9 @@ export function Market() {
           </div>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => { setPage(0); fetchJobs(0, false, true); }} 
-            className="btn btn-outline" 
+          <button
+            onClick={() => { setPage(0); fetchJobs(0, false, true); }}
+            className="btn btn-outline"
             title="Atualizar vagas agora"
             style={{ opacity: isRefreshing ? 0.5 : 1 }}
             disabled={isRefreshing}
@@ -233,11 +269,11 @@ export function Market() {
       {/* Add form */}
       {showAddForm && (
         <form onSubmit={handleAddJob} className="glass-card mb-4 grid gap-md" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          <input required type="text" placeholder="Título da Vaga" className="glass-input" value={newJob.title} onChange={e => setNewJob({...newJob, title: e.target.value})} />
-          <input required type="text" placeholder="Empresa" className="glass-input" value={newJob.company} onChange={e => setNewJob({...newJob, company: e.target.value})} />
-          <input type="text" placeholder="Localização (ex: Remoto)" className="glass-input" value={newJob.location} onChange={e => setNewJob({...newJob, location: e.target.value})} />
-          <input type="text" placeholder="Plataforma (ex: LinkedIn, Gupy)" className="glass-input" value={newJob.sourcePlatform} onChange={e => setNewJob({...newJob, sourcePlatform: e.target.value})} />
-          <input required type="url" placeholder="Link de Redirecionamento (URL)" className="glass-input" style={{ gridColumn: '1 / -1' }} value={newJob.sourceUrl} onChange={e => setNewJob({...newJob, sourceUrl: e.target.value})} />
+          <input required type="text" placeholder="Título da Vaga" className="glass-input" value={newJob.title} onChange={e => setNewJob({ ...newJob, title: e.target.value })} />
+          <input required type="text" placeholder="Empresa" className="glass-input" value={newJob.company} onChange={e => setNewJob({ ...newJob, company: e.target.value })} />
+          <input type="text" placeholder="Localização (ex: Remoto)" className="glass-input" value={newJob.location} onChange={e => setNewJob({ ...newJob, location: e.target.value })} />
+          <input type="text" placeholder="Plataforma (ex: LinkedIn, Gupy)" className="glass-input" value={newJob.sourcePlatform} onChange={e => setNewJob({ ...newJob, sourcePlatform: e.target.value })} />
+          <input required type="url" placeholder="Link de Redirecionamento (URL)" className="glass-input" style={{ gridColumn: '1 / -1' }} value={newJob.sourceUrl} onChange={e => setNewJob({ ...newJob, sourceUrl: e.target.value })} />
           <div style={{ gridColumn: '1 / -1' }} className="flex justify-end mt-2">
             <button type="submit" className="btn btn-primary">Salvar Vaga</button>
           </div>
@@ -354,6 +390,11 @@ export function Market() {
                         <DollarSign size={14} /> {job.salaryRange}
                       </span>
                     )}
+                    {job.createdAt && (
+                      <span className="flex items-center gap-sm text-xs" style={{ color: 'var(--text-muted)' }}>
+                        <Calendar size={14} /> {formatPublishedDate(job.createdAt)}
+                      </span>
+                    )}
                   </div>
 
                   {tags.length > 0 && (
@@ -396,12 +437,17 @@ export function Market() {
 
             {hasMore && (
               <div className="flex justify-center mt-6 mb-8">
-                <button 
-                  onClick={handleLoadMore} 
+                <button
+                  onClick={handleLoadMore}
                   className="btn btn-primary px-8 py-3 text-base flex items-center gap-2"
                   style={{ borderRadius: '30px', cursor: 'pointer' }}
+                  disabled={loadingMore}
                 >
-                  <RefreshCw size={16} /> Ver Mais Vagas
+                  <RefreshCw
+                    size={16}
+                    style={{ animation: loadingMore ? 'spin 1s linear infinite' : 'none' }}
+                  />
+                  {loadingMore ? 'Carregando Vagas...' : 'Ver Mais Vagas'}
                 </button>
               </div>
             )}

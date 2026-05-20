@@ -13,6 +13,26 @@ interface Developer {
   avatarUrl: string;
 }
 
+export function normalizeTopicName(name: string): string {
+  if (!name) return 'Geral';
+  const clean = name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  if (clean === 'duvidas' || clean === 'duvida' || clean === 'questions' || clean === 'question') {
+    return 'Dúvidas';
+  }
+  if (clean === 'vagas' || clean === 'vaga' || clean === 'jobs' || clean === 'job') {
+    return 'Vagas';
+  }
+  if (clean === 'geral' || clean === 'general') {
+    return 'Geral';
+  }
+  if (clean === 'ia' || clean === 'ai') {
+    return 'IA';
+  }
+  
+  return name.trim().charAt(0).toUpperCase() + name.trim().slice(1);
+}
+
 interface Post {
   id: number;
   author: Developer;
@@ -77,7 +97,7 @@ export function Community() {
     axios.post('/api/posts', {
       title: newTitle,
       content: newContent,
-      subreddit: newSubreddit,
+      subreddit: normalizeTopicName(newSubreddit),
       postType: 'GENERAL'
     }, { headers: { Authorization: `Bearer ${authToken}` } })
       .then(() => {
@@ -152,13 +172,26 @@ export function Community() {
   };
 
   const trendingTopics = useMemo(() => {
-    const subreddits = posts.map(p => p.subreddit).filter(Boolean);
+    const rawSubreddits = posts
+      .filter(p => p.postType !== 'TIMELINE' && p.subreddit && p.subreddit.trim() !== '')
+      .map(p => normalizeTopicName(p.subreddit));
+    
     const counts: Record<string, number> = {};
-    subreddits.forEach(s => counts[s] = (counts[s] || 0) + 1);
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+    rawSubreddits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+    
+    const uniqueTopics = Array.from(new Set(rawSubreddits));
+    return uniqueTopics.sort((a, b) => counts[b] - counts[a]);
   }, [posts]);
 
-  const filteredPosts = posts.filter(p => activeSubreddit === 'Todos' || p.subreddit === activeSubreddit);
+  const filteredPosts = posts.filter(p => {
+    // Apenas posts da Comunidade (ignora TIMELINE e posts sem subreddit definido)
+    if (p.postType === 'TIMELINE' || !p.subreddit || p.subreddit.trim() === '') {
+      return false;
+    }
+    const normActive = normalizeTopicName(activeSubreddit);
+    const normPostSub = normalizeTopicName(p.subreddit);
+    return activeSubreddit === 'Todos' || normPostSub === normActive;
+  });
 
   return (
     <div className="container community-layout animate-fade-in">
@@ -167,7 +200,7 @@ export function Community() {
           <h1 className="title-xl"><Typewriter text="Comunidade" speed={100} /></h1>
         </div>
 
-        <div className="subreddit-tabs mb-4 flex gap-2 overflow-x-auto pb-2">
+        <div className="topic-tabs mb-4 flex gap-2 overflow-x-auto pb-2">
           {['Todos', ...trendingTopics].map(sub => (
             <button
               key={sub}
@@ -175,7 +208,7 @@ export function Community() {
               className={`badge ${activeSubreddit === sub ? 'primary' : 'secondary'} cursor-pointer`}
               style={{ padding: '8px 16px', fontSize: '14px', whiteSpace: 'nowrap' }}
             >
-              {sub === 'Todos' ? 'Todos' : `s/${sub}`}
+              {sub === 'Todos' ? 'Todos' : `t/${sub}`}
             </button>
           ))}
         </div>
@@ -200,7 +233,7 @@ export function Community() {
               <input
                 type="text"
                 className="glass-input"
-                placeholder="Subreddit (ex: React)"
+                placeholder="Tópico (ex: React, Dúvidas, Backend)"
                 value={newSubreddit}
                 onChange={e => setNewSubreddit(e.target.value.replace(/\s+/g, ''))}
               />
@@ -217,7 +250,7 @@ export function Community() {
           {loading ? (
             <LoadingSpinner text="Carregando fórum..." />
           ) : filteredPosts.length === 0 ? (
-            <p className="text-muted">Nenhum post em s/{activeSubreddit}. Seja o primeiro!</p>
+            <p className="text-muted">Nenhum post em t/{activeSubreddit}. Seja o primeiro!</p>
           ) : (
             filteredPosts.map((post, index) => (
               <div key={post.id} className={`glass-card post-card delay-${(index % 5 + 1) * 100} flex gap-4`}>
@@ -260,7 +293,7 @@ export function Community() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-primary-light font-bold">s/{post.subreddit || 'Geral'}</span>
+                          <span className="text-xs text-primary-light font-bold">t/{normalizeTopicName(post.subreddit) || 'Geral'}</span>
                           <span className="text-xs text-muted">• Postado por @{post.author?.username || 'user'}</span>
                         </div>
                         <h3 className="post-author font-bold text-lg mt-1">{post.title}</h3>
@@ -345,16 +378,16 @@ export function Community() {
       </div>
 
       <div className="community-sidebar glass-card">
-        <h3>Subreddits Ativos</h3>
+        <h3>Tópicos Ativos</h3>
         <ul className="trending-list mt-4">
           {trendingTopics.length > 0 ? (
             trendingTopics.map(topic => (
               <li key={topic} onClick={() => setActiveSubreddit(topic)} className="cursor-pointer hover:text-primary-light">
-                s/{topic}
+                t/{topic}
               </li>
             ))
           ) : (
-            <p className="text-muted text-sm mt-2">Nenhum subreddit criado ainda.</p>
+            <p className="text-muted text-sm mt-2">Nenhum tópico criado ainda.</p>
           )}
         </ul>
       </div>

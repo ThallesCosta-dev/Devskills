@@ -1,8 +1,9 @@
 package com.devskills.controller;
-
+ 
 import com.devskills.model.Developer;
 import com.devskills.model.JobOffer;
 import com.devskills.model.JobOfferVote;
+import com.devskills.model.DeveloperSkill;
 import com.devskills.repository.DeveloperRepository;
 import com.devskills.repository.JobOfferRepository;
 import com.devskills.repository.JobOfferVoteRepository;
@@ -35,6 +36,7 @@ public class JobOfferController {
 
     @GetMapping("/market")
     public List<JobOffer> getMarketJobs(
+            @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
@@ -44,31 +46,127 @@ public class JobOfferController {
         String searchParam = (search == null || search.trim().isEmpty()) ? null : search.trim();
         String typeParam = (type == null || type.trim().isEmpty() || type.equals("ALL")) ? null : type.trim();
         
-        org.springframework.data.domain.Sort sortSpecification;
-        if ("votes".equals(sort)) {
-            sortSpecification = org.springframework.data.domain.Sort.by(
-                org.springframework.data.domain.Sort.Order.desc("upvotes"),
-                org.springframework.data.domain.Sort.Order.asc("downvotes"),
-                org.springframework.data.domain.Sort.Order.desc("id")
-            );
-        } else {
-            sortSpecification = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id");
-        }
-        
-        org.springframework.data.domain.PageRequest pageRequest = org.springframework.data.domain.PageRequest.of(page, size, sortSpecification);
-        
-        org.springframework.data.domain.Page<JobOffer> resultPage;
+        // 1. Carrega todas as vagas compatíveis com os filtros básicos
+        List<JobOffer> allJobs;
         if (searchParam != null && typeParam != null) {
-            resultPage = jobOfferRepository.findBySearchAndJobTypeWithAuthor(searchParam, typeParam, pageRequest);
+            allJobs = jobOfferRepository.findBySearchAndJobTypeWithAuthor(searchParam, typeParam);
         } else if (searchParam != null) {
-            resultPage = jobOfferRepository.findBySearchWithAuthor(searchParam, pageRequest);
+            allJobs = jobOfferRepository.findBySearchWithAuthor(searchParam);
         } else if (typeParam != null) {
-            resultPage = jobOfferRepository.findByJobTypeWithAuthor(typeParam, pageRequest);
+            allJobs = jobOfferRepository.findByJobTypeWithAuthor(typeParam);
         } else {
-            resultPage = jobOfferRepository.findAllWithAuthor(pageRequest);
+            allJobs = jobOfferRepository.findAllWithAuthor();
         }
+
+        // 2. Extrai as habilidades do usuário atual (se autenticado)
+        List<String> userSkills = new java.util.ArrayList<>();
+        if (jwt != null) {
+            Optional<Developer> devOpt = developerRepository.findById(jwt.getSubject());
+            if (devOpt.isPresent()) {
+                Developer dev = devOpt.get();
+                if (dev.getSkills() != null) {
+                    for (DeveloperSkill ds : dev.getSkills()) {
+                        if (ds.getSkill() != null && ds.getSkill().getName() != null) {
+                            userSkills.add(ds.getSkill().getName().toLowerCase().trim());
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Aplica ordenação refinada: prioriza vagas do período mais recente e, dentro dele, BR + Compatibilidade
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        allJobs.sort((a, b) -> {
+            // 3.1 Idade em dias das vagas
+            long daysA = a.getCreatedAt() != null ? java.time.temporal.ChronoUnit.DAYS.between(a.getCreatedAt(), now) : 999;
+            long daysB = b.getCreatedAt() != null ? java.time.temporal.ChronoUnit.DAYS.between(b.getCreatedAt(), now) : 999;
+            
+            if (daysA < 0) daysA = 0;
+            if (daysB < 0) daysB = 0;
+
+            // Classifica em faixas de tempo: 0 = Últimas 24h, 1 = Últimos 3 dias, 2 = Últimos 7 dias, 3 = Últimos 30 dias, 4 = Mais antigas
+            int rangeA = daysA <= 0 ? 0 : (daysA <= 3 ? 1 : (daysA <= 7 ? 2 : (daysA <= 30 ? 3 : 4)));
+            int rangeB = daysB <= 0 ? 0 : (daysB <= 3 ? 1 : (daysB <= 7 ? 2 : (daysB <= 30 ? 3 : 4)));
+
+            if (rangeA != rangeB) {
+                return Integer.compare(rangeA, rangeB); // Vagas de faixas de tempo mais recentes vêm primeiro
+            }
+
+            // 3.2 Habilidades compatíveis (score de afinidade)
+            int scoreA = 0;
+            int scoreB = 0;
+            if (!userSkills.isEmpty()) {
+                if (a.getTags() != null) {
+                    String tagsA = a.getTags().toLowerCase();
+                    for (String skill : userSkills) {
+                        if (tagsA.contains(skill)) scoreA++;
+                    }
+                }
+                if (b.getTags() != null) {
+                    String tagsB = b.getTags().toLowerCase();
+                    for (String skill : userSkills) {
+                        if (tagsB.contains(skill)) scoreB++;
+                    }
+                }
+            }
+
+            // 3.3 Identificação de Vagas Brasileiras (BR)
+            boolean isBrA = (a.getLocation() != null && (a.getLocation().toLowerCase().contains("brasil") || a.getLocation().toLowerCase().contains("br"))) 
+                || (a.getSourcePlatform() != null && (a.getSourcePlatform().toLowerCase().contains("br") || a.getSourcePlatform().toLowerCase().contains("brasil")));
+            
+            boolean isBrB = (b.getLocation() != null && (b.getLocation().toLowerCase().contains("brasil") || b.getLocation().toLowerCase().contains("br"))) 
+                || (b.getSourcePlatform() != null && (b.getSourcePlatform().toLowerCase().contains("br") || b.getSourcePlatform().toLowerCase().contains("brasil")));
+
+            // Prioridade 1: Vagas BR e Compatíveis juntas
+            boolean isBrCompA = isBrA && scoreA > 0;
+            boolean isBrCompB = isBrB && scoreB > 0;
+            if (isBrCompA != isBrCompB) {
+                return isBrCompA ? -1 : 1;
+            }
+
+            // Prioridade 2: Vagas Brasileiras (BR) no geral
+            if (isBrA != isBrB) {
+                return isBrA ? -1 : 1;
+            }
+
+            // Prioridade 3: Compatibilidade de habilidades
+            boolean isCompA = scoreA > 0;
+            boolean isCompB = scoreB > 0;
+            if (isCompA != isCompB) {
+                return isCompA ? -1 : 1;
+            }
+
+            // Prioridade 4: Desempate por quantidade de skills compatíveis
+            if (scoreA != scoreB) {
+                return Integer.compare(scoreB, scoreA);
+            }
+
+            // Prioridade 5: Critério Secundário de Votação (se selecionado)
+            if ("votes".equals(sort)) {
+                int netA = a.getUpvotes() - a.getDownvotes();
+                int netB = b.getUpvotes() - b.getDownvotes();
+                if (netA != netB) {
+                    return Integer.compare(netB, netA);
+                }
+            }
+            
+            // Prioridade 6: Data exata de publicação descrescente (mais recentes primeiro)
+            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
+            }
+
+            return Long.compare(b.getId(), a.getId());
+        });
+
+        // 4. Paginação em Memória
+        int start = page * size;
+        if (start >= allJobs.size()) {
+            return new java.util.ArrayList<>();
+        }
+        int end = Math.min(start + size, allJobs.size());
         
-        return resultPage.getContent();
+        return allJobs.subList(start, end);
     }
 
     @PostMapping
@@ -185,6 +283,21 @@ public class JobOfferController {
                 jobOfferRepository.save(job);
                 imported++;
             } else {
+                // Se a vaga já existe, atualiza a data de publicação real
+                Optional<JobOffer> existingJobOpt = Optional.empty();
+                if (job.getExternalId() != null && !job.getExternalId().isBlank()) {
+                    existingJobOpt = jobOfferRepository.findByExternalId(job.getExternalId());
+                } else if (job.getSourceUrl() != null && !job.getSourceUrl().isBlank()) {
+                    existingJobOpt = jobOfferRepository.findBySourceUrl(job.getSourceUrl());
+                }
+                
+                if (existingJobOpt.isPresent()) {
+                    JobOffer existingJob = existingJobOpt.get();
+                    if (job.getCreatedAt() != null) {
+                        existingJob.setCreatedAt(job.getCreatedAt());
+                        jobOfferRepository.save(existingJob);
+                    }
+                }
                 skipped++;
             }
         }
