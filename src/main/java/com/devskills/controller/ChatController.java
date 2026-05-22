@@ -2,8 +2,10 @@ package com.devskills.controller;
 
 import com.devskills.model.Developer;
 import com.devskills.model.Message;
+import com.devskills.model.Notification;
 import com.devskills.repository.DeveloperRepository;
 import com.devskills.repository.MessageRepository;
+import com.devskills.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +26,9 @@ public class ChatController {
 
     @Autowired
     private DeveloperRepository developerRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     // Get all contacts (users the current user has chatted with)
     @GetMapping("/contacts")
@@ -81,7 +86,17 @@ public class ChatController {
         }
         
         Message msg = new Message(senderOpt.get(), receiverOpt.get(), content.trim());
-        return ResponseEntity.ok(messageRepository.save(msg));
+        Message savedMsg = messageRepository.save(msg);
+
+        // Save notification for receiver
+        Notification notif = new Notification(
+            receiverOpt.get(), 
+            senderOpt.get().getName() + " enviou uma mensagem para você.", 
+            "/chat/" + senderId
+        );
+        notificationRepository.save(notif);
+
+        return ResponseEntity.ok(savedMsg);
     }
 
     // Send a message by username
@@ -114,6 +129,25 @@ public class ChatController {
         }
         
         Message msg = new Message(senderOpt.get(), receiverOpt.get(), content.trim());
-        return ResponseEntity.ok(messageRepository.save(msg));
+        Message savedMsg = messageRepository.save(msg);
+
+        // Save notification for receiver
+        Notification notif = new Notification(
+            receiverOpt.get(), 
+            senderOpt.get().getName() + " enviou uma mensagem para você.", 
+            "/chat/" + senderId
+        );
+        notificationRepository.save(notif);
+
+        return ResponseEntity.ok(savedMsg);
+    }
+
+    // Get unread messages count
+    @GetMapping("/unread-count")
+    public ResponseEntity<Long> getUnreadCount(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) return ResponseEntity.status(401).build();
+        String myId = jwt.getSubject();
+        long count = messageRepository.countByReceiverIdAndIsReadFalse(myId);
+        return ResponseEntity.ok(count);
     }
 }

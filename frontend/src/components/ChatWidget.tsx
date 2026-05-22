@@ -22,7 +22,37 @@ export function ChatWidget() {
   
   const authToken = localStorage.getItem('auth_token');
   const isAuthenticated = !!authToken;
-  const myUserId = localStorage.getItem('user_id');
+  const [myId, setMyId] = useState<string | null>(localStorage.getItem('user_id'));
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Fetch current user profile if user_id is not in localStorage
+  useEffect(() => {
+    if (isAuthenticated && !myId) {
+      axios.get('/api/devskills/me', { headers: { Authorization: `Bearer ${authToken}` } })
+        .then(res => {
+          if (res.data && res.data.id) {
+            localStorage.setItem('user_id', res.data.id);
+            setMyId(res.data.id);
+          }
+        })
+        .catch(err => console.error("Error fetching current profile in widget:", err));
+    }
+  }, [authToken, isAuthenticated, myId]);
+
+  // Load unread message count
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUnreadCount = () => {
+        axios.get('/api/chat/unread-count', { headers: { Authorization: `Bearer ${authToken}` } })
+          .then(res => setUnreadCount(Number(res.data)))
+          .catch(err => console.error("Error fetching unread count:", err));
+      };
+
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 8000); // Poll every 8s
+      return () => clearInterval(interval);
+    }
+  }, [authToken, isAuthenticated, isOpen]);
 
   // Load contacts
   useEffect(() => {
@@ -70,6 +100,10 @@ export function ChatWidget() {
       .then(res => {
         setMessages(res.data);
         setLoading(false);
+        // Refresh unread count since we just loaded and read messages
+        axios.get('/api/chat/unread-count', { headers: { Authorization: `Bearer ${authToken}` } })
+          .then(cRes => setUnreadCount(Number(cRes.data)))
+          .catch(err => console.error(err));
       })
       .catch(err => {
         console.error(err);
@@ -132,8 +166,13 @@ export function ChatWidget() {
   return (
     <div className={`chat-widget-container ${isOpen ? 'open' : ''} ${isExpanded ? 'expanded' : ''}`}>
       {!isOpen && (
-        <button className="chat-fab btn-primary" onClick={() => setIsOpen(true)}>
+        <button className="chat-fab btn-primary" onClick={() => setIsOpen(true)} style={{ position: 'relative' }}>
           <MessageCircle size={24} />
+          {unreadCount > 0 && (
+            <span className="chat-unread-badge">
+              {unreadCount}
+            </span>
+          )}
         </button>
       )}
 
@@ -229,7 +268,7 @@ export function ChatWidget() {
                   </div>
                 )}
                 {messages.map(msg => {
-                  const isMine = msg.sender.id === myUserId;
+                  const isMine = msg.sender.id === myId;
                   return (
                     <div key={msg.id} className={`message-row ${isMine ? 'mine' : 'theirs'}`}>
                       <div className={`message-bubble ${isMine ? 'bg-primary' : 'bg-secondary'}`}>

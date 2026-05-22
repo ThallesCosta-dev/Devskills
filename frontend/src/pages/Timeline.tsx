@@ -82,6 +82,19 @@ export function Timeline() {
       .catch(err => toast.error("Erro: " + err.message));
   };
 
+  const handleDeleteComment = (commentId: number, postId: number) => {
+    if (!confirm("Apagar comentário?")) return;
+    axios.delete(`/api/comments/${commentId}`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then(() => {
+        toast.success("Comentário apagado!");
+        setComments(prev => ({
+          ...prev,
+          [postId]: (prev[postId] || []).filter((c: any) => c.id !== commentId)
+        }));
+      })
+      .catch(err => toast.error("Erro ao apagar comentário: " + err.message));
+  };
+
   const handleVote = (id: number, voteValue: number) => {
     if (votingId === id) return;
     setVotingId(id);
@@ -303,7 +316,14 @@ export function Timeline() {
                           {!c.author?.avatarUrl && (c.author?.name || 'U').charAt(0)}
                         </div>
                         <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '8px 12px' }}>
-                          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-light)', marginBottom: '2px' }}>@{c.author?.username}</p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-light)', margin: 0 }}>@{c.author?.username}</p>
+                            {myUserId && c.author?.id === myUserId && (
+                              <button onClick={() => handleDeleteComment(c.id, post.id)} style={{ color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Apagar comentário">
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
                           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{c.content}</p>
                           {isAuthenticated && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -34,7 +34,7 @@ public class JobOfferControllerTest {
         job1.setTitle("Java Developer");
         job1.setCompany("TechCorp");
 
-        Mockito.when(jobOfferRepository.findAll()).thenReturn(Arrays.asList(job1));
+        Mockito.when(jobOfferRepository.findAllWithAuthor()).thenReturn(new java.util.ArrayList<>(Arrays.asList(job1)));
 
         mockMvc.perform(get("/api/jobs/market").with(jwt()))
                 .andExpect(status().isOk())
@@ -57,11 +57,18 @@ public class JobOfferControllerTest {
 
     @Test
     public void deleteJobOffer_shouldReturnNoContent() throws Exception {
-        Mockito.when(jobOfferRepository.existsById(1L)).thenReturn(true);
+        JobOffer job = new JobOffer();
+        job.setId(1L);
+        com.devskills.model.Developer author = new com.devskills.model.Developer();
+        author.setId("uuid-do-usuario-1234");
+        job.setAuthor(author);
 
-        mockMvc.perform(delete("/api/jobs/1").with(jwt()))
+        Mockito.when(jobOfferRepository.findById(1L)).thenReturn(Optional.of(job));
+
+        mockMvc.perform(delete("/api/jobs/1")
+                .with(jwt().jwt(jwt -> jwt.claim("sub", "uuid-do-usuario-1234"))))
                 .andExpect(status().isNoContent());
 
-        Mockito.verify(jobOfferRepository, Mockito.times(1)).deleteById(1L);
+        Mockito.verify(jobOfferRepository, Mockito.times(1)).delete(job);
     }
 }

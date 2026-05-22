@@ -1,0 +1,4 @@
+com\devskills\controller\JobOfferControllerTest.class
+com\devskills\controller\CommentControllerTest.class
+com\devskills\controller\PostControllerTest.class
+com\devskills\SecurityIntegrationTest.class

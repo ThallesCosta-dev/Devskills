@@ -120,6 +120,19 @@ export function Community() {
       .catch(err => toast.error("Não foi possível apagar a publicação: " + getFriendlyErrorMessage(err)));
   };
 
+  const handleDeleteComment = (commentId: number, postId: number) => {
+    if (!confirm("Tem certeza que deseja apagar este comentário?")) return;
+    axios.delete(`/api/comments/${commentId}`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then(() => {
+        toast.success("Comentário apagado!");
+        setComments(prev => ({
+          ...prev,
+          [postId]: (prev[postId] || []).filter((c: any) => c.id !== commentId)
+        }));
+      })
+      .catch(err => toast.error("Não foi possível apagar o comentário: " + getFriendlyErrorMessage(err)));
+  };
+
   const [votingId, setVotingId] = useState<number | null>(null);
 
   const handleVote = (id: number, voteValue: number) => {
@@ -301,7 +314,7 @@ export function Community() {
                       </div>
                     </div>
                     {myUserId && post.author?.id === myUserId && (
-                      <button onClick={() => handleDeletePost(post.id)} className="text-red-400 hover:text-red-300">
+                      <button onClick={() => handleDeletePost(post.id)} style={{ color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Apagar Post">
                         <Trash2 size={16} />
                       </button>
                     )}
@@ -334,7 +347,14 @@ export function Community() {
                                 {!c.author?.avatarUrl && (c.author?.name || 'U').charAt(0)}
                               </div>
                               <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '6px 10px' }}>
-                                <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-light)', marginBottom: '2px' }}>@{c.author?.username}</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                  <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-light)', margin: 0 }}>@{c.author?.username}</p>
+                                  {myUserId && c.author?.id === myUserId && (
+                                    <button onClick={() => handleDeleteComment(c.id, post.id)} style={{ color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Apagar comentário">
+                                      <Trash2 size={13} />
+                                    </button>
+                                  )}
+                                </div>
                                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{c.content}</p>
                                 {isAuthenticated && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -1,0 +1,150 @@
+# Created at 2026-05-21T15:12:28.668
+Thread dump for process (2456@DESKTOP-F87OLS8) after 30 seconds shutdown timeout:
+"main" 
+   java.lang.Thread.State: WAITING
+        at java.base@25.0.2/java.lang.Object.wait0(Native Method)
+        at java.base@25.0.2/java.lang.Object.wait(Object.java:389)
+        at java.base@25.0.2/java.lang.Thread.join(Thread.java:1887)
+        at java.base@25.0.2/java.lang.Thread.join(Thread.java:1963)
+        at java.base@25.0.2/java.lang.ApplicationShutdownHooks.runHooks(ApplicationShutdownHooks.java:114)
+        at java.base@25.0.2/java.lang.ApplicationShutdownHooks$1.run(ApplicationShutdownHooks.java:47)
+        at java.base@25.0.2/java.lang.Shutdown.runHooks(Shutdown.java:130)
+        at java.base@25.0.2/java.lang.Shutdown.exit(Shutdown.java:167)
+        at java.base@25.0.2/java.lang.Runtime.exit(Runtime.java:177)
+        at java.base@25.0.2/java.lang.System.exit(System.java:1540)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.acknowledgedExit(ForkedBooter.java:381)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:178)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+
+"Reference Handler" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@25.0.2/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+        at java.base@25.0.2/java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+        at java.base@25.0.2/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+"Finalizer" 
+   java.lang.Thread.State: WAITING
+        at java.base@25.0.2/java.lang.Object.wait0(Native Method)
+        at java.base@25.0.2/java.lang.Object.wait(Object.java:389)
+        at java.base@25.0.2/java.lang.Object.wait(Object.java:351)
+        at java.base@25.0.2/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:137)
+        at java.base@25.0.2/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:215)
+        at java.base@25.0.2/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:165)
+
+"Signal Dispatcher" 
+   java.lang.Thread.State: RUNNABLE
+
+"Attach Listener" 
+   java.lang.Thread.State: RUNNABLE
+
+"Notification Thread" 
+   java.lang.Thread.State: RUNNABLE
+
+"Common-Cleaner" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@25.0.2/java.lang.Object.wait0(Native Method)
+        at java.base@25.0.2/java.lang.Object.wait(Object.java:389)
+        at java.base@25.0.2/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:123)
+        at java.base@25.0.2/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:201)
+        at java.base@25.0.2/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:146)
+        at java.base@25.0.2/java.lang.Thread.runWith(Thread.java:1487)
+        at java.base@25.0.2/java.lang.Thread.run(Thread.java:1474)
+        at java.base@25.0.2/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:148)
+
+"HikariPool-1 housekeeper" 
+   java.lang.Thread.State: WAITING
+        at java.base@25.0.2/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@25.0.2/java.util.concurrent.locks.LockSupport.park(LockSupport.java:369)
+        at java.base@25.0.2/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:520)
+        at java.base@25.0.2/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:4364)
+        at java.base@25.0.2/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:4310)
+        at java.base@25.0.2/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1752)
+        at java.base@25.0.2/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1154)
+        at java.base@25.0.2/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+        at java.base@25.0.2/java.lang.Thread.runWith(Thread.java:1487)
+        at java.base@25.0.2/java.lang.Thread.run(Thread.java:1474)
+
+"HikariPool-1 connection adder" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@25.0.2/sun.nio.ch.Net.poll(Native Method)
+        at java.base@25.0.2/sun.nio.ch.NioSocketImpl.park(NioSocketImpl.java:190)
+        at java.base@25.0.2/sun.nio.ch.NioSocketImpl.park(NioSocketImpl.java:200)
+        at java.base@25.0.2/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:307)
+        at java.base@25.0.2/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:354)
+        at java.base@25.0.2/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:798)
+        at java.base@25.0.2/java.net.Socket$SocketInputStream.implRead(Socket.java:974)
+        at java.base@25.0.2/java.net.Socket$SocketInputStream.read(Socket.java:964)
+        at java.base@25.0.2/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:489)
+        at java.base@25.0.2/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:483)
+        at java.base@25.0.2/sun.security.ssl.SSLSocketInputRecord.bytesInCompletePacket(SSLSocketInputRecord.java:70)
+        at java.base@25.0.2/sun.security.ssl.SSLSocketImpl.readApplicationRecord(SSLSocketImpl.java:1461)
+        at java.base@25.0.2/sun.security.ssl.SSLSocketImpl$AppInputStream.read(SSLSocketImpl.java:1068)
+        at app//org.postgresql.core.VisibleBufferedInputStream.readMore(VisibleBufferedInputStream.java:161)
+        at app//org.postgresql.core.VisibleBufferedInputStream.ensureBytes(VisibleBufferedInputStream.java:128)
+        at app//org.postgresql.core.VisibleBufferedInputStream.ensureBytes(VisibleBufferedInputStream.java:113)
+        at app//org.postgresql.core.VisibleBufferedInputStream.read(VisibleBufferedInputStream.java:73)
+        at app//org.postgresql.core.PGStream.receiveChar(PGStream.java:465)
+        at app//org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:678)
+        at app//org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:203)
+        at app//org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:258)
+        at app//org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:54)
+        at app//org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:263)
+        at app//org.postgresql.Driver.makeConnection(Driver.java:443)
+        at app//org.postgresql.Driver.connect(Driver.java:297)
+        at app//com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138)
+        at app//com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:359)
+        at app//com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:201)
+        at app//com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:470)
+        at app//com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:733)
+        at app//com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:712)
+        at java.base@25.0.2/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+        at java.base@25.0.2/java.lang.Thread.runWith(Thread.java:1487)
+        at java.base@25.0.2/java.lang.Thread.run(Thread.java:1474)
+
+"surefire-forkedjvm-last-ditch-daemon-shutdown-thread-30s" 
+   java.lang.Thread.State: RUNNABLE
+        at java.management@25.0.2/sun.management.ThreadImpl.getThreadInfo1(Native Method)
+        at java.management@25.0.2/sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:184)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.generateThreadDump(ForkedBooter.java:579)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.access$600(ForkedBooter.java:79)
+        at app//org.apache.maven.surefire.booter.ForkedBooter$7.run(ForkedBooter.java:424)
+        at java.base@25.0.2/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+        at java.base@25.0.2/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+        at java.base@25.0.2/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:309)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+        at java.base@25.0.2/java.lang.Thread.runWith(Thread.java:1487)
+        at java.base@25.0.2/java.lang.Thread.run(Thread.java:1474)
+
+"SpringApplicationShutdownHook" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@25.0.2/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@25.0.2/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)
+        at java.base@25.0.2/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)
+        at java.base@25.0.2/java.util.concurrent.ThreadPoolExecutor.awaitTermination(ThreadPoolExecutor.java:1421)
+        at app//com.zaxxer.hikari.pool.HikariPool.shutdown(HikariPool.java:217)
+        at app//com.zaxxer.hikari.HikariDataSource.close(HikariDataSource.java:351)
+        at app//org.springframework.beans.factory.support.DisposableBeanAdapter.destroy(DisposableBeanAdapter.java:232)
+        at app//org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroyBean(DefaultSingletonBeanRegistry.java:587)
+        at app//org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingleton(DefaultSingletonBeanRegistry.java:559)
+        at app//org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingleton(DefaultListableBeanFactory.java:1202)
+        at app//org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingletons(DefaultSingletonBeanRegistry.java:520)
+        at app//org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingletons(DefaultListableBeanFactory.java:1195)
+        at app//org.springframework.context.support.AbstractApplicationContext.destroyBeans(AbstractApplicationContext.java:1186)
+        at app//org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1147)
+        at app//org.springframework.context.support.AbstractApplicationContext.close(AbstractApplicationContext.java:1093)
+        at app//org.springframework.boot.SpringApplicationShutdownHook.closeAndWait(SpringApplicationShutdownHook.java:145)
+        at app//org.springframework.boot.SpringApplicationShutdownHook$$Lambda/0x0000000026b89008.accept(Unknown Source)
+        at java.base@25.0.2/java.lang.Iterable.forEach(Iterable.java:75)
+        at app//org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:114)
+        at java.base@25.0.2/java.lang.Thread.runWith(Thread.java:1487)
+        at java.base@25.0.2/java.lang.Thread.run(Thread.java:1474)
+
+
+

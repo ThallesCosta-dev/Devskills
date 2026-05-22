@@ -20,4 +20,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "UNION " +
            "SELECT DISTINCT m.receiver.id FROM Message m WHERE m.sender.id = :userId")
     List<String> findContactIds(@Param("userId") String userId);
+
+    // Count unread messages received by a specific user
+    long countByReceiverIdAndIsReadFalse(String receiverId);
 }

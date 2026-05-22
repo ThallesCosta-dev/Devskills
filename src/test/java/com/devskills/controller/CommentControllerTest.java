@@ -42,11 +42,18 @@ public class CommentControllerTest {
 
     @Test
     public void deleteComment_shouldReturnNoContent() throws Exception {
-        Mockito.when(commentRepository.existsById(1L)).thenReturn(true);
+        Comment comment = new Comment();
+        comment.setId(1L);
+        com.devskills.model.Developer author = new com.devskills.model.Developer();
+        author.setId("uuid-do-usuario-1234");
+        comment.setAuthor(author);
 
-        mockMvc.perform(delete("/api/comments/1").with(jwt()))
+        Mockito.when(commentRepository.findById(1L)).thenReturn(java.util.Optional.of(comment));
+
+        mockMvc.perform(delete("/api/comments/1")
+                .with(jwt().jwt(jwt -> jwt.claim("sub", "uuid-do-usuario-1234"))))
                 .andExpect(status().isNoContent());
 
-        Mockito.verify(commentRepository, Mockito.times(1)).deleteById(1L);
+        Mockito.verify(commentRepository, Mockito.times(1)).delete(comment);
     }
 }

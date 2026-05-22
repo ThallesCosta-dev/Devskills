@@ -41,6 +41,7 @@ export function Register() {
     if (data.user && data.session) {
       localStorage.setItem('auth_token', data.session.access_token);
       localStorage.setItem('user_email', email);
+      localStorage.setItem('user_id', data.user.id);
       window.location.href = '/';
     } else {
       toast.success("Conta criada! Verifique seu e-mail.");

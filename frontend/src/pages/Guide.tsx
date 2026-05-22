@@ -25,7 +25,17 @@ import {
   Smartphone,
   Rocket,
   ArrowRight,
-  LogIn
+  LogIn,
+  Terminal,
+  Shield,
+  Layers,
+  Zap,
+  Gem,
+  Droplet,
+  GitBranch,
+  Bold,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { guideData } from '../data/guideData';
 import { Typewriter } from '../components/Typewriter';
@@ -54,12 +64,21 @@ const getCategoryIcon = (iconName: string) => {
     case 'Cpu': return <Cpu {...iconProps} />;
     case 'Smartphone': return <Smartphone {...iconProps} />;
     case 'Rocket': return <Rocket {...iconProps} />;
+    case 'Terminal': return <Terminal {...iconProps} />;
+    case 'Shield': return <Shield {...iconProps} />;
+    case 'Layers': return <Layers {...iconProps} />;
+    case 'Zap': return <Zap {...iconProps} />;
+    case 'Gem': return <Gem {...iconProps} />;
+    case 'Droplet': return <Droplet {...iconProps} />;
+    case 'GitBranch': return <GitBranch {...iconProps} />;
+    case 'Bold': return <Bold {...iconProps} />;
     default: return <BookOpen {...iconProps} />;
   }
 };
 
 export function Guide() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({});
   const isAuthenticated = !!localStorage.getItem('auth_token');
 
   // Filter categories
@@ -176,27 +195,49 @@ export function Guide() {
             <p className="text-secondary">Nenhum resultado encontrado para "{searchTerm}"</p>
           </div>
         ) : (
-          filteredData.map((category, index) => (
-            <div key={index} className="guide-category-card glass-card hover-glow">
-              <div className="category-header">
-                <span className="category-icon">{getCategoryIcon(category.icon)}</span>
-                <h2 className="title-md">{category.title}</h2>
+          filteredData.map((category, index) => {
+            const hasManyLinks = category.links.length > 8 && !searchTerm;
+            const isExpanded = !!expandedCategories[index];
+            const visibleLinks = hasManyLinks && !isExpanded ? category.links.slice(0, 8) : category.links;
+
+            return (
+              <div key={index} className="guide-category-card glass-card hover-glow">
+                <div className="category-header">
+                  <span className="category-icon">{getCategoryIcon(category.icon)}</span>
+                  <h2 className="title-md">{category.title}</h2>
+                </div>
+                {category.description && (
+                  <p className="category-description text-sm text-muted">{category.description}</p>
+                )}
+                <ul className="category-links mt-4">
+                  {visibleLinks.map((link, idx) => (
+                    <li key={idx}>
+                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="guide-link">
+                        <span>{link.title}</span>
+                        <ExternalLink size={14} className="external-icon" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {hasManyLinks && (
+                  <button 
+                    onClick={() => setExpandedCategories(prev => ({ ...prev, [index]: !prev[index] }))}
+                    className="toggle-expand-btn"
+                  >
+                    {isExpanded ? (
+                      <>
+                        Mostrar menos <ChevronUp size={16} />
+                      </>
+                    ) : (
+                      <>
+                        Mostrar mais ({category.links.length - 8} links) <ChevronDown size={16} />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-              {category.description && (
-                <p className="category-description text-sm text-muted">{category.description}</p>
-              )}
-              <ul className="category-links mt-4">
-                {category.links.map((link, idx) => (
-                  <li key={idx}>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="guide-link">
-                      <span>{link.title}</span>
-                      <ExternalLink size={14} className="external-icon" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

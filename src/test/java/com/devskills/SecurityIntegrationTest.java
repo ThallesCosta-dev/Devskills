@@ -26,7 +26,7 @@ public class SecurityIntegrationTest {
                         .claim("sub", "uuid-do-usuario-1234")
                         .claim("email", "dev@devskills.com"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value("uuid-do-usuario-1234"))
+                .andExpect(jsonPath("$.id").value("uuid-do-usuario-1234"))
                 .andExpect(jsonPath("$.email").value("dev@devskills.com"));
     }
 
@@ -35,5 +35,15 @@ public class SecurityIntegrationTest {
         // Simula uma requisição sem token JWT
         mockMvc.perform(get("/api/devskills/me"))
                 .andExpect(status().isUnauthorized()); // Espera um HTTP 401
+    }
+
+    @Test
+    public void givenValidJwtWithoutAdminScope_whenAccessAdminEndpoint_thenReturnsForbidden() throws Exception {
+        // Simula uma requisição para rota administrativa com token sem autoridade SCOPE_admin
+        mockMvc.perform(get("/api/admin/users")
+                .with(jwt().jwt(jwt -> jwt
+                        .claim("sub", "uuid-do-usuario-1234")
+                        .claim("email", "dev@devskills.com"))))
+                .andExpect(status().isForbidden()); // Espera um HTTP 403
     }
 }

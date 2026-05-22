@@ -53,7 +53,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: white;
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
@@ -154,7 +154,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--primary-color);
+  background-color: var(--primary);
   color: white;
   font-weight: bold;
   display: flex;
@@ -225,20 +225,24 @@
 
 .message-bubble {
   max-width: 80%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
   font-size: 0.875rem;
-  color: white;
+  line-height: 1.4;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .message-row.mine .message-bubble {
-  background: var(--primary-color);
-  border-top-right-radius: 2px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: #ffffff !important;
+  border-bottom-right-radius: 4px;
 }
 
 .message-row.theirs .message-bubble {
-  background: rgba(255,255,255,0.1);
-  border-top-left-radius: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border);
+  border-bottom-left-radius: 4px;
 }
 
 .message-content {
@@ -277,7 +281,7 @@
 }
 
 .chat-input:focus {
-  border-color: var(--primary-color);
+  border-color: var(--primary);
 }
 
 .chat-send-btn {
@@ -337,4 +341,21 @@
     width: calc(100vw - 2rem);
     height: calc(100vh - 5rem);
   }
+}
+
+.chat-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }

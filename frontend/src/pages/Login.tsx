@@ -23,9 +23,10 @@ export function Login() {
       return;
     }
 
-    if (data.session) {
+    if (data.session && data.user) {
       localStorage.setItem('auth_token', data.session.access_token);
       localStorage.setItem('user_email', email);
+      localStorage.setItem('user_id', data.user.id);
       window.location.href = '/';
     }
   };

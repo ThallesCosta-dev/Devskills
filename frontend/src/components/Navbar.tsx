@@ -115,7 +115,12 @@ export function Navbar() {
                       ) : (
                         notifications.map(n => (
                           <div key={n.id} className="p-3 bg-secondary bg-opacity-20 rounded-md hover:bg-opacity-30 cursor-pointer transition-colors" onClick={() => {
-                            if(n.link) navigate(n.link);
+                            axios.put(`/api/notifications/${n.id}/read`, {}, { headers: { Authorization: `Bearer ${authToken}` } })
+                              .then(() => {
+                                setNotifications(prev => prev.filter(item => item.id !== n.id));
+                              })
+                              .catch(err => console.error("Erro ao marcar notificação como lida:", err));
+                            if (n.link) navigate(n.link);
                             setShowNotif(false);
                           }}>
                             <p className="text-sm text-secondary leading-snug">{n.message}</p>

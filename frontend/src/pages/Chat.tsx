@@ -21,7 +21,21 @@ export function Chat() {
   
   const authToken = localStorage.getItem('auth_token');
   const isAuthenticated = !!authToken;
-  const myUserId = localStorage.getItem('user_id');
+  const [myId, setMyId] = useState<string | null>(localStorage.getItem('user_id'));
+
+  // Fetch current user profile if user_id is not in localStorage
+  useEffect(() => {
+    if (isAuthenticated && !myId) {
+      axios.get('/api/devskills/me', { headers: { Authorization: `Bearer ${authToken}` } })
+        .then(res => {
+          if (res.data && res.data.id) {
+            localStorage.setItem('user_id', res.data.id);
+            setMyId(res.data.id);
+          }
+        })
+        .catch(err => console.error("Error fetching current profile:", err));
+    }
+  }, [authToken, isAuthenticated, myId]);
 
   // Fetch contacts
   useEffect(() => {
@@ -237,7 +251,7 @@ export function Chat() {
             <div className="chat-messages flex-1 overflow-y-auto mb-4 px-2" style={{ maxHeight: 'calc(100vh - 280px)' }}>
               {loading && messages.length === 0 && <LoadingSpinner text="Carregando mensagens..." />}
               {messages.map(msg => {
-                const isMine = msg.sender.id === myUserId;
+                const isMine = msg.sender.id === myId;
                 return (
                   <div key={msg.id} className={`message-bubble-wrapper ${isMine ? 'mine' : 'theirs'}`}>
                     <div className={`message-bubble ${isMine ? 'bg-primary' : 'bg-secondary bg-opacity-20'}`}>

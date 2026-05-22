@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.devskills.controller.CommentControllerTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 23.66 s -- in com.devskills.controller.CommentControllerTest
